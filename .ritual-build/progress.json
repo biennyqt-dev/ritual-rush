@@ -8,7 +8,7 @@
     "sharing",
     "supplied-music"
   ],
-  "current_phase": 10,
+  "current_phase": 11,
   "phases": [
     {
       "phase": 0,
@@ -112,6 +112,17 @@
         "Overall completion, lifetime stats, unlock toasts, and local persistence",
         "Desktop and 390px mobile progression QA with no console issues"
       ]
+    },
+    {
+      "phase": 11,
+      "status": "complete",
+      "artifacts": [
+        "Ritual RPC verified live with eth_chainId 0x7bb (1979)",
+        "Source published to https://github.com/biennyqt-dev/ritual-rush",
+        "Production deployed to https://ritual-rush-eight.vercel.app",
+        "GitHub main branch connected to Vercel for automatic deployments",
+        "Production menu and gameplay smoke-tested in the browser"
+      ]
     }
   ],
   "decisions": [
@@ -121,7 +132,8 @@
     "Ritual Testnet configuration is centralized from the official skill values.",
     "Remote fonts were replaced with local font stacks so production builds are deterministic and offline-safe.",
     "The reference site informed only the simple three-lane gameplay rhythm; no source, layout, assets, colors, branding, or dimensions were copied.",
-    "The latest supplied direction supersedes phase 8: the Ritual logo is now used proportionally for both the player and every obstacle, while the shield remains a distinct energy orb."
+    "The latest supplied direction supersedes phase 8: the Ritual logo is now used proportionally for both the player and every obstacle, while the shield remains a distinct energy orb.",
+    "The Vercel deployment publishes the offchain web application; no smart contract deployment is required for this version."
   ],
   "files_read": [
     "skills/ritual/SKILL.md",
@@ -141,7 +153,7 @@
   ],
   "next_file": null,
   "markers": {
-    "chain_connection": false,
+    "chain_connection": true,
     "wallet_funded": false,
     "contract_compiled": false,
     "contract_deployed": false,

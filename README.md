@@ -88,6 +88,7 @@ Copy `.env.example` to `.env.local` only when you need to override the public Ri
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_RITUAL_RPC_URL` | Ritual Testnet RPC used by the optional wallet configuration |
+| `NEXT_PUBLIC_SITE_URL` | Optional canonical production origin; Vercel supplies its production URL automatically |
 | `NEXT_PUBLIC_LEADERBOARD_API_URL` | Reserved for a future hosted adapter; unused by the local preview |
 
 No private key, secret, API token, or contract address is required.
@@ -147,22 +148,24 @@ Guidance loaded and applied:
 
 The projection phase determined that no precompile or consumer contract is essential for this first version: Canvas rendering, arcade logic, local persistence, score display, and guest identity are browser concerns. The official chain and wallet guidance still shapes the optional connection flow and centralized network configuration.
 
-## Production build and deployment preparation
+## Production deployment
 
-Create an optimized build with:
+- Live game: [ritual-rush-eight.vercel.app](https://ritual-rush-eight.vercel.app)
+- Source: [github.com/biennyqt-dev/ritual-rush](https://github.com/biennyqt-dev/ritual-rush)
+- Host: Vercel, connected to the GitHub `main` branch
+- Network: Ritual Testnet, Chain ID `1979`
+
+Create and run an optimized build locally with:
 
 ```bash
 pnpm build
 pnpm start
 ```
 
-This run deliberately does not deploy the website or a contract. Before a future deployment:
-
-1. Re-run all verification commands.
-2. Replace the local leaderboard adapter only after a hosted data design is approved.
-3. Set the final canonical game URL for sharing and social metadata.
-4. Add server-side score validation if competitive public rankings are introduced.
-5. Keep gameplay optional-wallet and avoid claiming that wallet identity verifies an offchain score.
+This version deploys the browser application to Vercel and configures its optional
+wallet layer for Ritual Testnet. It does not deploy a smart contract because the
+gameplay loop, achievements, settings, and local leaderboard are intentionally
+offchain and require no transaction.
 
 ## Known limitations
 
