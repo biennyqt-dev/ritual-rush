@@ -7,6 +7,9 @@ coverage/
 .vercel/
 .ritual-build/*
 !.ritual-build/progress.json
+contracts/out/
+contracts/cache/
+contracts/broadcast/
 .env
 .env.local
 .env.*.local

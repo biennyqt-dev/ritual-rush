@@ -1855,6 +1855,21 @@ main {
   font-weight: 700;
 }
 
+.credits-bar a {
+  color: var(--gray-300);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    color 150ms ease,
+    text-shadow 150ms ease;
+}
+
+.credits-bar a:hover,
+.credits-bar a:focus-visible {
+  color: var(--lime);
+  text-shadow: 0 0 12px rgba(191, 255, 0, 0.4);
+}
+
 .menu-layer {
   grid-template: auto minmax(0, 1fr) auto / 1fr;
   gap: 0.65rem;

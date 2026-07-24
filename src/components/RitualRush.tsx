@@ -46,10 +46,12 @@ import {
   utcDateKey,
   writeJson,
 } from "@/lib/storage";
+import { ritualRushContractExplorerUrl } from "@/lib/ritualRushContract";
 
 const PROFILE_KEY = "ritual-rush:profile:v1";
 const BEST_KEY = "ritual-rush:best:v1";
 const SETTINGS_KEY = "ritual-rush:settings:v1";
+const CONTRACT_EXPLORER_URL = ritualRushContractExplorerUrl();
 
 type Panel = "leaderboard" | "achievements" | "profile" | null;
 
@@ -579,6 +581,16 @@ export function RitualRush() {
             <span>
               Powered by <strong>Ritual</strong>
             </span>
+            {CONTRACT_EXPLORER_URL && (
+              <a
+                href={CONTRACT_EXPLORER_URL}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="View Ritual Rush public testnet contract"
+              >
+                Public testnet ↗
+              </a>
+            )}
             <span>
               Created by <strong>Bien</strong>
             </span>

@@ -8,7 +8,7 @@
     "sharing",
     "supplied-music"
   ],
-  "current_phase": 11,
+  "current_phase": 12,
   "phases": [
     {
       "phase": 0,
@@ -123,6 +123,18 @@
         "GitHub main branch connected to Vercel for automatic deployments",
         "Production menu and gameplay smoke-tested in the browser"
       ]
+    },
+    {
+      "phase": 12,
+      "status": "in_progress",
+      "artifacts": [
+        "Official ritual-foundation/ritual-dapp-skills repository pinned as a visible Git submodule",
+        "Skill-driven RitualRush Solidity score-claim registry compiled with Solidity 0.8.24",
+        "6 passing Foundry contract tests",
+        "Deployer 0x6cdD0392DDEA911470471F2eD4Df3318E8E2889a funded with approximately 4.413850 testnet RITUAL",
+        "Frontend contract ABI, environment configuration, and explorer-link integration added",
+        "On-chain broadcast and verification awaiting the locally supplied deployer private key"
+      ]
     }
   ],
   "decisions": [
@@ -133,7 +145,9 @@
     "Remote fonts were replaced with local font stacks so production builds are deterministic and offline-safe.",
     "The reference site informed only the simple three-lane gameplay rhythm; no source, layout, assets, colors, branding, or dimensions were copied.",
     "The latest supplied direction supersedes phase 8: the Ritual logo is now used proportionally for both the player and every obstacle, while the shield remains a distinct energy orb.",
-    "The Vercel deployment publishes the offchain web application; no smart contract deployment is required for this version."
+    "The Vercel deployment publishes the browser application.",
+    "The user requested an on-chain Ritual public testnet phase after the initial offchain release.",
+    "The RitualRush contract is ownerless and records explicitly unverified public score claims without custody, tokens, or privileged administration."
   ],
   "files_read": [
     "skills/ritual/SKILL.md",
@@ -154,8 +168,8 @@
   "next_file": null,
   "markers": {
     "chain_connection": true,
-    "wallet_funded": false,
-    "contract_compiled": false,
+    "wallet_funded": true,
+    "contract_compiled": true,
     "contract_deployed": false,
     "precompile_simulated": false,
     "precompile_settled": false,

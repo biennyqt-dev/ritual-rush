@@ -1,0 +1,3 @@
+[submodule ".codex/skills/ritual-dapp-skills"]
+	path = .codex/skills/ritual-dapp-skills
+	url = https://github.com/ritual-foundation/ritual-dapp-skills.git
