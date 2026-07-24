@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+coverage/
+.codex/
+.release-tools/
+.vercel/
+.ritual-build/*
+!.ritual-build/progress.json
+.env
+.env.local
+.env.*.local
+*.log
+*.tsbuildinfo
+.DS_Store

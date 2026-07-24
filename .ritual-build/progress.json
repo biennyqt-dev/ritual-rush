@@ -1,0 +1,154 @@
+{
+  "intent": "build",
+  "features": [
+    "offchain-canvas-game",
+    "optional-wallet",
+    "local-leaderboard",
+    "achievements",
+    "sharing",
+    "supplied-music"
+  ],
+  "current_phase": 10,
+  "phases": [
+    {
+      "phase": 0,
+      "status": "complete",
+      "artifacts": [
+        "Complete product specification mapped",
+        "Ritual skill trace loaded",
+        "Offchain-first architecture selected"
+      ]
+    },
+    {
+      "phase": 1,
+      "status": "complete",
+      "artifacts": [
+        "Next.js application scaffold",
+        "Centralized Ritual Testnet configuration",
+        "Optional Wagmi wallet provider"
+      ]
+    },
+    {
+      "phase": 2,
+      "status": "complete",
+      "artifacts": [
+        "Delta-time Canvas runner engine",
+        "Fair obstacle patterns and collision mechanics",
+        "Shield, scoring, speed, multiplier, and replay systems"
+      ]
+    },
+    {
+      "phase": 3,
+      "status": "complete",
+      "artifacts": [
+        "Responsive menu, HUD, pause, and result surfaces",
+        "Local daily leaderboard and achievement protocol",
+        "Nickname, audio, sharing, and persistence features"
+      ]
+    },
+    {
+      "phase": 4,
+      "status": "complete",
+      "artifacts": [
+        "Keyboard, touch, and swipe controls",
+        "Reduced-motion and focus support",
+        "Safe storage parsing and render-only user content"
+      ]
+    },
+    {
+      "phase": 5,
+      "status": "complete",
+      "artifacts": [
+        "TypeScript and ESLint verification",
+        "23 passing unit tests",
+        "Successful Next.js production build"
+      ]
+    },
+    {
+      "phase": 6,
+      "status": "complete",
+      "artifacts": [
+        "Desktop and mobile browser smoke tests",
+        "Gameplay, replay, pause, leaderboard, achievements, and persistence verified",
+        "No browser console warnings or errors"
+      ]
+    },
+    {
+      "phase": 7,
+      "status": "complete",
+      "artifacts": [
+        "Local preview available at http://127.0.0.1:3000",
+        "No deployment or repository push performed"
+      ]
+    },
+    {
+      "phase": 8,
+      "status": "complete",
+      "artifacts": [
+        "Compact centered arcade-cabinet presentation",
+        "User-supplied official Ritual logo used proportionally as the player",
+        "Simplified score, shield, best-score, game-over, and replay surfaces",
+        "Desktop and mobile logo-player browser QA with no console issues"
+      ]
+    },
+    {
+      "phase": 9,
+      "status": "complete",
+      "artifacts": [
+        "User-supplied galaxy image integrated as the animated space background",
+        "User-supplied music integrated with one persistent Music ON/OFF control",
+        "Official Ritual logo used proportionally for the player and all obstacles",
+        "Smooth 15-second network acceleration levels and notification",
+        "Desktop and 390px mobile browser QA with no console issues"
+      ]
+    },
+    {
+      "phase": 10,
+      "status": "complete",
+      "artifacts": [
+        "Minimal Powered by Ritual and Created by Bien information bar",
+        "Pulled-back camera with wider distant lanes and longer obstacle lead time",
+        "35 achievements across eight categories with five hidden challenges",
+        "Overall completion, lifetime stats, unlock toasts, and local persistence",
+        "Desktop and 390px mobile progression QA with no console issues"
+      ]
+    }
+  ],
+  "decisions": [
+    "The arcade loop, local leaderboard, achievements, audio, and persistence remain offchain browser functionality.",
+    "No Ritual precompile or smart contract is essential for version one.",
+    "Wallet connection is optional identity only and never gates gameplay.",
+    "Ritual Testnet configuration is centralized from the official skill values.",
+    "Remote fonts were replaced with local font stacks so production builds are deterministic and offline-safe.",
+    "The reference site informed only the simple three-lane gameplay rhythm; no source, layout, assets, colors, branding, or dimensions were copied.",
+    "The latest supplied direction supersedes phase 8: the Ritual logo is now used proportionally for both the player and every obstacle, while the shield remains a distinct energy orb."
+  ],
+  "files_read": [
+    "skills/ritual/SKILL.md",
+    "skills/ritual-meta-projection/SKILL.md",
+    "skills/ritual-dapp-overview/SKILL.md",
+    "skills/ritual-dapp-precompiles/SKILL.md",
+    "agents/ritual-dapp-builder.md",
+    "examples/registry.json",
+    "skills/ritual-dapp-contracts/SKILL.md",
+    "skills/ritual-dapp-wallet/SKILL.md",
+    "skills/ritual-dapp-frontend/SKILL.md",
+    "skills/ritual-dapp-design/SKILL.md",
+    "skills/ritual-dapp-deploy/SKILL.md",
+    "skills/ritual-dapp-testing/SKILL.md",
+    "agents/ritual-dapp-debugger.md",
+    "skills/ritual-meta-verification/SKILL.md"
+  ],
+  "next_file": null,
+  "markers": {
+    "chain_connection": false,
+    "wallet_funded": false,
+    "contract_compiled": false,
+    "contract_deployed": false,
+    "precompile_simulated": false,
+    "precompile_settled": false,
+    "frontend_renders": true,
+    "frontend_connects": false,
+    "e2e_complete": true
+  }
+}

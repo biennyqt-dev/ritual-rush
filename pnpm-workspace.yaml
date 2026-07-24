@@ -1,0 +1,6 @@
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+
+# A flat layout avoids Windows junction churn and long-path edge cases.
+nodeLinker: hoisted
