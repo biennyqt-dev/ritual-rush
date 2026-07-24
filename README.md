@@ -154,6 +154,8 @@ The projection phase determined that no precompile or consumer contract is essen
 - Source: [github.com/biennyqt-dev/ritual-rush](https://github.com/biennyqt-dev/ritual-rush)
 - Host: Vercel, connected to the GitHub `main` branch
 - Network: Ritual Testnet, Chain ID `1979`
+- Score registry: [`0x66f4825a9a1f73b6ff4d36ee5e53d0e7a44f3437`](https://explorer.ritualfoundation.org/address/0x66f4825a9a1f73b6ff4d36ee5e53d0e7a44f3437)
+- Deployment transaction: [`0x9a18de98306d498979f20a855845e682daa07340d6f80fbdd5edf8622fd45507`](https://explorer.ritualfoundation.org/tx/0x9a18de98306d498979f20a855845e682daa07340d6f80fbdd5edf8622fd45507)
 
 Create and run an optimized build locally with:
 
@@ -163,19 +165,19 @@ pnpm start
 ```
 
 This version deploys the browser application to Vercel and configures its optional
-wallet layer for Ritual Testnet. It does not deploy a smart contract because the
-gameplay loop, achievements, settings, and local leaderboard are intentionally
-offchain and require no transaction.
+wallet layer for Ritual Testnet. The gameplay loop, achievements, settings, and
+local leaderboard remain offchain and require no transaction; connected players
+can optionally publish score claims to the ownerless Ritual Rush registry above.
 
 ## Known limitations
 
 - Leaderboard rows and achievements are device-local.
 - Demo leaderboard names are preview data, not real community members.
 - Offchain scores are not cheat-resistant.
-- Wallet connection is identity-only in this version.
+- On-chain score claims are public, explicitly unverified claims from connected wallets.
 - Music begins only after the player starts a run, in line with browser autoplay requirements.
 - Image export for the in-app score card is not included.
-- No smart contract or hosted database is deployed.
+- No hosted database is deployed.
 
 ## License
 

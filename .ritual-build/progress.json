@@ -126,14 +126,16 @@
     },
     {
       "phase": 12,
-      "status": "in_progress",
+      "status": "complete",
       "artifacts": [
         "Official ritual-foundation/ritual-dapp-skills repository pinned as a visible Git submodule",
         "Skill-driven RitualRush Solidity score-claim registry compiled with Solidity 0.8.24",
         "6 passing Foundry contract tests",
         "Deployer 0x6cdD0392DDEA911470471F2eD4Df3318E8E2889a funded with approximately 4.413850 testnet RITUAL",
         "Frontend contract ABI, environment configuration, and explorer-link integration added",
-        "On-chain broadcast and verification awaiting the locally supplied deployer private key"
+        "Contract deployed to Ritual public testnet with an EIP-1559 transaction",
+        "On-chain bytecode and read-call verification completed",
+        "Production Vercel environment wired to the deployed contract address"
       ]
     }
   ],
@@ -170,11 +172,11 @@
     "chain_connection": true,
     "wallet_funded": true,
     "contract_compiled": true,
-    "contract_deployed": false,
+    "contract_deployed": true,
     "precompile_simulated": false,
     "precompile_settled": false,
     "frontend_renders": true,
-    "frontend_connects": false,
+    "frontend_connects": true,
     "e2e_complete": true
   }
 }
