@@ -15,9 +15,11 @@
     "realtime-onchain-leaderboard",
     "transaction-explorer-links",
     "wallet-record-readiness",
-    "minimal-network-chrome"
+    "minimal-network-chrome",
+    "github-production-push",
+    "vercel-production-deploy"
   ],
-  "current_phase": 17,
+  "current_phase": 18,
   "phases": [
     {
       "phase": 0,
@@ -208,6 +210,16 @@
         "Wallet, score recording, and transaction links remain intact",
         "38 frontend tests passing, lint/typecheck/build passing",
         "Local preview rebuilt and healthy"
+      ]
+    },
+    {
+      "phase": 18,
+      "status": "complete",
+      "artifacts": [
+        "Verified commit c248db3 pushed to GitHub main",
+        "Vercel production deployment dpl_5w5GkM68dqiKXrHuTekCh86uRx5Z completed",
+        "Production alias https://ritual-rush-eight.vercel.app responds HTTP 200",
+        "No Ritual contract redeployment required for this frontend-only release"
       ]
     }
   ],
