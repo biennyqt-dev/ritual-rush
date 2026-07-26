@@ -30,9 +30,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og.png",
-        width: 1536,
-        height: 1024,
-        alt: "Ritual Rush energy core racing through a living computational network",
+        width: 292,
+        height: 123,
+        alt: "RITUAL RUSH logo",
       },
     ],
   },

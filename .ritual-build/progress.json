@@ -17,9 +17,10 @@
     "wallet-record-readiness",
     "minimal-network-chrome",
     "github-production-push",
-    "vercel-production-deploy"
+    "vercel-production-deploy",
+    "social-preview-logo"
   ],
-  "current_phase": 18,
+  "current_phase": 19,
   "phases": [
     {
       "phase": 0,
@@ -220,6 +221,16 @@
         "Vercel production deployment dpl_5w5GkM68dqiKXrHuTekCh86uRx5Z completed",
         "Production alias https://ritual-rush-eight.vercel.app responds HTTP 200",
         "No Ritual contract redeployment required for this frontend-only release"
+      ]
+    },
+    {
+      "phase": 19,
+      "status": "complete",
+      "artifacts": [
+        "Supplied RITUAL RUSH logo image replaced the generated Open Graph artwork",
+        "Open Graph metadata updated to the supplied image dimensions and alt text",
+        "Local page and /og.png asset both verified HTTP 200",
+        "No Ritual contract redeployment required for a social-preview asset change"
       ]
     }
   ],
