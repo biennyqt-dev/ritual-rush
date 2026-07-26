@@ -12,6 +12,8 @@ describe("lifetime stats", () => {
     const first = recordCompletedRun(
       emptyLifetimeStats(),
       {
+        runId: `0x${"01".repeat(32)}`,
+        completedAt: "2026-07-23T12:00:00.000Z",
         score: 1200,
         distance: 340,
         bestScore: 1200,
@@ -30,6 +32,8 @@ describe("lifetime stats", () => {
     const second = recordCompletedRun(
       first,
       {
+        runId: `0x${"02".repeat(32)}`,
+        completedAt: "2026-07-24T12:00:00.000Z",
         score: 800,
         distance: 200,
         bestScore: 1200,

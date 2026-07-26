@@ -19,6 +19,108 @@ export interface ShieldModel {
   consumed: boolean;
 }
 
+export interface ShieldSpawnConfig {
+  minimumLevelOne: number;
+  targetLevelOne: number;
+  minimumLaterLevels: number;
+  minimumGapSeconds: number;
+  firstSpawnAfterSeconds: number;
+  levelOneChance: number;
+  laterLevelChance: number;
+}
+
+export const DEFAULT_SHIELD_SPAWN_CONFIG: ShieldSpawnConfig = {
+  minimumLevelOne: 2,
+  targetLevelOne: 3,
+  minimumLaterLevels: 1,
+  minimumGapSeconds: 3.8,
+  firstSpawnAfterSeconds: 2.2,
+  levelOneChance: 0.58,
+  laterLevelChance: 0.24,
+};
+
+export function shieldTargetForLevel(
+  level: number,
+  config = DEFAULT_SHIELD_SPAWN_CONFIG,
+): number {
+  if (level <= 1) return config.targetLevelOne;
+  return Math.max(
+    config.minimumLaterLevels,
+    Math.round(config.targetLevelOne * Math.pow(0.84, level - 1)),
+  );
+}
+
+export function shouldSpawnShield(
+  level: number,
+  levelElapsedSeconds: number,
+  spawnedThisLevel: number,
+  lastSpawnElapsedSeconds: number,
+  hasShieldReady: boolean,
+  random = Math.random,
+  config = DEFAULT_SHIELD_SPAWN_CONFIG,
+): boolean {
+  if (hasShieldReady) return false;
+  if (spawnedThisLevel >= shieldTargetForLevel(level, config)) return false;
+  if (
+    levelElapsedSeconds < config.firstSpawnAfterSeconds ||
+    levelElapsedSeconds - lastSpawnElapsedSeconds < config.minimumGapSeconds
+  ) {
+    return false;
+  }
+
+  if (
+    level === 1 &&
+    spawnedThisLevel < config.minimumLevelOne &&
+    levelElapsedSeconds < 14.5
+  ) {
+    return true;
+  }
+
+  return random() <
+    (level === 1 ? config.levelOneChance : config.laterLevelChance);
+}
+
+export function chooseShieldLane(
+  pattern: PatternItem[],
+  blockedLanes: Lane[] = [],
+  random = Math.random,
+): Lane | null {
+  const blocked = new Set<Lane>(blockedLanes);
+  for (const item of pattern) {
+    if (item.delay <= 1.1) blocked.add(item.lane);
+  }
+  const safeLanes = ([0, 1, 2] as Lane[]).filter(
+    (lane) => !blocked.has(lane),
+  );
+  if (safeLanes.length === 0) return null;
+  return safeLanes[Math.floor(random() * safeLanes.length)] ?? safeLanes[0];
+}
+
+let fallbackRunCounter = 0;
+
+export function createRunId(random = Math.random): string {
+  const bytes = new Uint8Array(32);
+  const timestamp = Date.now() + fallbackRunCounter++;
+  const useSecureRandom =
+    random === Math.random &&
+    typeof crypto !== "undefined" &&
+    typeof crypto.getRandomValues === "function";
+
+  if (useSecureRandom) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < 8; index += 1) {
+      bytes[index] = (timestamp >>> ((index % 4) * 8)) & 0xff;
+    }
+    for (let index = 8; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.max(0, Math.min(0.999999, random())) * 256);
+    }
+  }
+
+  if (bytes.every((value) => value === 0)) bytes[31] = 1;
+  return `0x${Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export function clampLane(value: number): Lane {
   return Math.max(0, Math.min(2, Math.round(value))) as Lane;
 }

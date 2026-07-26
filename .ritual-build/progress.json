@@ -6,9 +6,18 @@
     "local-leaderboard",
     "achievements",
     "sharing",
-    "supplied-music"
+    "supplied-music",
+    "configurable-shields",
+    "onchain-score-recording",
+    "optional-score-card-nft",
+    "onchain-score-history",
+    "ritual-logo-favicon",
+    "realtime-onchain-leaderboard",
+    "transaction-explorer-links",
+    "wallet-record-readiness",
+    "minimal-network-chrome"
   ],
-  "current_phase": 12,
+  "current_phase": 17,
   "phases": [
     {
       "phase": 0,
@@ -137,6 +146,69 @@
         "On-chain bytecode and read-call verification completed",
         "Production Vercel environment wired to the deployed contract address"
       ]
+    },
+    {
+      "phase": 13,
+      "status": "complete",
+      "artifacts": [
+        "Configurable shield spawning with level-one minimum and fair lane spacing",
+        "Frozen run IDs and completed-at timestamps for score records",
+        "Ownerless v2 RitualRush registry with duplicate prevention and optional score-card NFT",
+        "Explicit Ritual Testnet record/mint confirmations, gas messaging, and explorer links",
+        "Onchain score history panel with confirmed transaction status",
+        "Supplied Ritual logo wired as favicon and Apple touch icon",
+        "36 frontend tests passing, lint/typecheck/build passing",
+        "v2 contract compiled with solc 0.8.24; Foundry contract tests remain pending because forge is unavailable in this shell",
+        "Local production preview ready; deployment and repository push held for approval"
+      ]
+    },
+    {
+      "phase": 14,
+      "status": "complete",
+      "artifacts": [
+        "v2 registry deployed to Ritual Chain 1979 at 0xff63baef4911e909d1546f4ca24af2797c96279e",
+        "EIP-1559 deployment verified with runtime bytecode and VERSION() = 2.0.0",
+        "Ignored local preview environment wired to the deployed v2 registry",
+        "Deployment script guarded against stale v1 artifacts",
+        "Local score-card smoke test shows wallet connection path and public testnet contract link",
+        "GitHub and Vercel remain untouched pending user preview approval"
+      ]
+    },
+    {
+      "phase": 15,
+      "status": "complete",
+      "artifacts": [
+        "Public onchain leaderboard reads ScoreRecorded events from the v2 registry",
+        "Leaderboard sorts live scores and refreshes every 12 seconds",
+        "Every row exposes a direct Ritual Explorer transaction link",
+        "Score action copy changed to Record your score",
+        "History modal renamed Your record score in Ritual Rush with old testnet-history labels removed",
+        "38 frontend tests passing, lint/typecheck/build passing",
+        "Preview remains local-only pending user approval"
+      ]
+    },
+    {
+      "phase": 16,
+      "status": "complete",
+      "artifacts": [
+        "Wallet record action no longer blocks on a transient VERSION read",
+        "Public v2 registry address is the safe default with environment override",
+        "Score card now links directly to the deployed registry explorer address",
+        "Confirmed older registry versions remain blocked with an explicit refresh message",
+        "38 frontend tests passing, lint/typecheck/build passing",
+        "Local preview rebuilt and ready for user review"
+      ]
+    },
+    {
+      "phase": 17,
+      "status": "complete",
+      "artifacts": [
+        "Removed the PUBLIC TESTNET header badge",
+        "Removed the Ritual Testnet/Chain 1979 registry footer chrome from the score card",
+        "Wallet, score recording, and transaction links remain intact",
+        "38 frontend tests passing, lint/typecheck/build passing",
+        "Local preview rebuilt and healthy"
+      ]
     }
   ],
   "decisions": [
@@ -149,7 +221,8 @@
     "The latest supplied direction supersedes phase 8: the Ritual logo is now used proportionally for both the player and every obstacle, while the shield remains a distinct energy orb.",
     "The Vercel deployment publishes the browser application.",
     "The user requested an on-chain Ritual public testnet phase after the initial offchain release.",
-    "The RitualRush contract is ownerless and records explicitly unverified public score claims without custody, tokens, or privileged administration."
+    "The RitualRush contract is ownerless and records explicitly unverified public score claims without custody, tokens, or privileged administration.",
+    "The v2 registry is deployed to Ritual Testnet so the local preview can exercise real wallet transactions; the browser bundle remains preview-gated with no repository push or Vercel deployment before approval."
   ],
   "files_read": [
     "skills/ritual/SKILL.md",
@@ -177,6 +250,6 @@
     "precompile_settled": false,
     "frontend_renders": true,
     "frontend_connects": true,
-    "e2e_complete": true
+    "e2e_complete": false
   }
 }

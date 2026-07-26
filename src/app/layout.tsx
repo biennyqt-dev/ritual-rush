@@ -13,6 +13,16 @@ export const metadata: Metadata = {
   description: "Rush through the network. Survive the chaos.",
   applicationName: "Ritual Rush",
   metadataBase: new URL(siteUrl),
+  icons: {
+    icon: [
+      {
+        url: "/ritual-logo.jpg",
+        type: "image/jpeg",
+        sizes: "400x400",
+      },
+    ],
+    apple: "/ritual-logo.jpg",
+  },
   openGraph: {
     title: "Ritual Rush",
     description: "Rush through the network. Survive the chaos.",

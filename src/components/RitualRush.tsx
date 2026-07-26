@@ -9,6 +9,10 @@ import {
 import { WalletControl } from "@/components/WalletControl";
 import { Modal } from "@/components/Modal";
 import {
+  OnchainHistoryPanel,
+  OnchainScorePanel,
+} from "@/components/OnchainScorePanel";
+import {
   ACHIEVEMENTS,
   ACHIEVEMENT_CATEGORIES,
   achievementPercent,
@@ -46,14 +50,12 @@ import {
   utcDateKey,
   writeJson,
 } from "@/lib/storage";
-import { ritualRushContractExplorerUrl } from "@/lib/ritualRushContract";
 
 const PROFILE_KEY = "ritual-rush:profile:v1";
 const BEST_KEY = "ritual-rush:best:v1";
 const SETTINGS_KEY = "ritual-rush:settings:v1";
-const CONTRACT_EXPLORER_URL = ritualRushContractExplorerUrl();
 
-type Panel = "leaderboard" | "achievements" | "profile" | null;
+type Panel = "leaderboard" | "achievements" | "profile" | "onchain" | null;
 
 const EMPTY_SNAPSHOT: GameSnapshot = {
   status: "idle",
@@ -312,7 +314,7 @@ export function RitualRush() {
 
   const handleGameOver = useCallback(
     async (result: RunResult) => {
-      const completedAt = new Date();
+      const completedAt = new Date(result.completedAt);
       lastGameOverAtRef.current = Date.now();
       if (result.isNewBest) {
         bestRef.current = result.score;
@@ -581,16 +583,6 @@ export function RitualRush() {
             <span>
               Powered by <strong>Ritual</strong>
             </span>
-            {CONTRACT_EXPLORER_URL && (
-              <a
-                href={CONTRACT_EXPLORER_URL}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="View Ritual Rush public testnet contract"
-              >
-                Public testnet ↗
-              </a>
-            )}
             <span>
               Created by <strong>Bien</strong>
             </span>
@@ -620,6 +612,13 @@ export function RitualRush() {
                 onClick={() => openPanel("achievements")}
               >
                 <span aria-hidden="true">◇</span> Achievements
+              </button>
+              <button
+                className="outline-button"
+                type="button"
+                onClick={() => openPanel("onchain")}
+              >
+                <span aria-hidden="true">⌁</span> Your Record Score
               </button>
             </div>
 
@@ -739,11 +738,24 @@ export function RitualRush() {
               >
                 View Leaderboard
               </button>
+              <button
+                className="outline-button"
+                onClick={() => openPanel("onchain")}
+              >
+                Your Record Score
+              </button>
               <button className="text-button" onClick={returnToMenu}>
                 Menu
               </button>
             </div>
           </div>
+          <OnchainScorePanel
+            result={runResult}
+            nickname={profile.nickname}
+            personalBest={Math.max(bestScore, runResult.bestScore)}
+            unlocked={unlocked}
+            onWalletConnected={setWalletAddress}
+          />
         </section>
       )}
 
@@ -959,6 +971,21 @@ export function RitualRush() {
               })}
             </div>
           </div>
+        </Modal>
+      )}
+
+      {panel === "onchain" && (
+        <Modal
+          title="YOUR RECORD SCORE IN RITUAL RUSH"
+          eyebrow="Live onchain leaderboard"
+          onClose={() => setPanel(null)}
+        >
+          <OnchainHistoryPanel />
+          <p className="modal-note">
+            Public records show scores submitted through connected wallets.
+            Each transaction link opens the Ritual Explorer. They do not make
+            browser gameplay cheat-proof.
+          </p>
         </Modal>
       )}
     </div>

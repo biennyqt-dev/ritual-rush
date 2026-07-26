@@ -1,11 +1,16 @@
 import {
   advanceScore,
+  chooseShieldLane,
+  createRunId,
+  DEFAULT_SHIELD_SPAWN_CONFIG,
   detectCollision,
   difficultyAt,
   generateFairPattern,
   moveLane,
+  shouldSpawnShield,
   type PatternItem,
 } from "@/game/engine/math";
+import { freezeRunResult } from "@/lib/scoreRecord";
 import type {
   GameSnapshot,
   Lane,
@@ -47,12 +52,16 @@ export class GameEngine {
   private lane: Lane = 1;
   private displayLane = 1;
   private score = 0;
+  private runId = "0x";
   private distance = 0;
   private elapsed = 0;
   private spawnTimer = 0.6;
   private shieldTimer = 0;
   private brokenTimer = 0;
   private shieldsCollected = 0;
+  private shieldCountByLevel = new Map<number, number>();
+  private lastShieldSpawnElapsed = Number.NEGATIVE_INFINITY;
+  private shieldSpawnLevel = 1;
   private shieldUsed = false;
   private closeCall = false;
   private laneMoves = 0;
@@ -128,12 +137,16 @@ export class GameEngine {
     this.lane = 1;
     this.displayLane = 1;
     this.score = 0;
+    this.runId = createRunId(this.random);
     this.distance = 0;
     this.elapsed = 0;
     this.spawnTimer = 1.05;
     this.shieldTimer = 0;
     this.brokenTimer = 0;
     this.shieldsCollected = 0;
+    this.shieldCountByLevel.clear();
+    this.lastShieldSpawnElapsed = Number.NEGATIVE_INFINITY;
+    this.shieldSpawnLevel = 1;
     this.shieldUsed = false;
     this.closeCall = false;
     this.laneMoves = 0;
@@ -320,6 +333,7 @@ export class GameEngine {
   };
 
   private queuePattern(level: number) {
+    const difficulty = difficultyAt(this.elapsed);
     const pattern = generateFairPattern(level, this.random);
     for (const item of pattern) {
       this.pending.push({
@@ -328,17 +342,60 @@ export class GameEngine {
       });
     }
 
-    const shieldChance = this.shieldTimer <= 0 ? 0.115 : 0.03;
-    if (this.random() < shieldChance) {
-      const occupied = new Set(
-        pattern.filter((item) => item.delay === 0).map((item) => item.lane),
+    const levelStart = Math.max(0, (level - 1) * 15);
+    if (this.shieldSpawnLevel !== level) {
+      this.shieldSpawnLevel = level;
+      this.lastShieldSpawnElapsed = Number.NEGATIVE_INFINITY;
+    }
+    const spawnedThisLevel = this.shieldCountByLevel.get(level) ?? 0;
+    const hasShieldReady =
+      this.shieldTimer > 0 ||
+      this.objects.some((object) => object.kind === "shield");
+    if (
+      shouldSpawnShield(
+        level,
+        this.elapsed - levelStart,
+        spawnedThisLevel,
+        this.lastShieldSpawnElapsed,
+        hasShieldReady,
+        this.random,
+        DEFAULT_SHIELD_SPAWN_CONFIG,
+      )
+    ) {
+      const shieldTravelSeconds =
+        (PLAYER_Y + 0.26) / (difficulty.speed * 0.94);
+      const liveObstacleLanes = this.objects
+        .filter((object) => object.kind !== "shield" && object.y < 0.48)
+        .filter((object) => {
+          const obstacleArrival =
+            (PLAYER_Y - object.y) /
+            (difficulty.speed * object.speedFactor);
+          return Math.abs(obstacleArrival - shieldTravelSeconds) < 1.25;
+        })
+        .map((object) => object.lane);
+      const pendingObstacleLanes = this.pending
+        .filter((item) => item.at >= this.elapsed)
+        .filter((item) => {
+          const spawnIn = item.at - this.elapsed;
+          const obstacleTravelSeconds =
+            (PLAYER_Y + 0.26) /
+            (difficulty.speed * (item.fast ? 1.18 : 1));
+          return (
+            Math.abs(spawnIn + obstacleTravelSeconds - shieldTravelSeconds) <
+            1.25
+          );
+        })
+        .map((item) => item.lane);
+      const shieldLane = chooseShieldLane(
+        pattern,
+        [...liveObstacleLanes, ...pendingObstacleLanes],
+        this.random,
       );
-      const safeLanes = ([0, 1, 2] as Lane[]).filter(
-        (candidate) => !occupied.has(candidate),
-      );
-      const shieldLane =
-        safeLanes[Math.floor(this.random() * safeLanes.length)] ?? 1;
-      this.spawnObject(shieldLane, "shield", 0.94);
+      if (shieldLane !== null) {
+        this.spawnObject(shieldLane, "shield", 0.94);
+        this.shieldCountByLevel.set(level, spawnedThisLevel + 1);
+        this.lastShieldSpawnElapsed = this.elapsed - levelStart;
+      }
     }
   }
 
@@ -381,7 +438,9 @@ export class GameEngine {
     this.burst(this.lane, PLAYER_Y, "#EF4444", 44);
     const score = Math.floor(this.score);
     const previousBest = this.getBestScore();
-    const result: RunResult = {
+    const result = freezeRunResult({
+      runId: this.runId,
+      completedAt: new Date().toISOString(),
       score,
       distance: Math.floor(this.distance),
       bestScore: Math.max(score, previousBest),
@@ -394,7 +453,7 @@ export class GameEngine {
       laneMoves: this.laneMoves,
       nearMisses: this.nearMisses,
       stationaryPasses: this.bestStationaryPasses,
-    };
+    });
     this.emitSnapshot();
     this.onGameOver?.(result);
   }

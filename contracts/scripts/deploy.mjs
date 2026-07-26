@@ -40,6 +40,15 @@ const artifact = JSON.parse(
   ),
 );
 
+const hasV2Registry = artifact.abi.some(
+  (item) => item.type === "function" && item.name === "recordScore",
+);
+if (!hasV2Registry) {
+  throw new Error(
+    "contracts/out/RitualRush.sol/RitualRush.json is not the v2 registry artifact; compile the current source before deploying.",
+  );
+}
+
 const ritual = defineChain({
   id: 1979,
   name: "Ritual",

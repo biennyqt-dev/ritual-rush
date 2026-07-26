@@ -35,6 +35,8 @@ export interface GameSnapshot {
 }
 
 export interface RunResult {
+  runId: string;
+  completedAt: string;
   score: number;
   distance: number;
   bestScore: number;

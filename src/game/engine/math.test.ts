@@ -4,11 +4,15 @@ import {
   advanceScore,
   clampLane,
   consumeShield,
+  chooseShieldLane,
+  createRunId,
   detectCollision,
   difficultyAt,
   generateFairPattern,
   moveLane,
   patternIsPossible,
+  shieldTargetForLevel,
+  shouldSpawnShield,
 } from "@/game/engine/math";
 
 describe("lane movement", () => {
@@ -40,6 +44,31 @@ describe("collision and shields", () => {
     expect(broken.activeSeconds).toBe(0);
     expect(broken.brokenSeconds).toBeGreaterThan(0);
     expect(broken.consumed).toBe(true);
+  });
+
+  it("targets three shields in level one with a two-shield minimum", () => {
+    expect(shieldTargetForLevel(1)).toBe(3);
+
+    expect(shouldSpawnShield(1, 2.3, 0, Number.NEGATIVE_INFINITY, false, () => 0)).toBe(true);
+    expect(shouldSpawnShield(1, 3.1, 1, 2.3, false, () => 0)).toBe(false);
+    expect(shouldSpawnShield(1, 6.2, 1, 2.3, false, () => 0)).toBe(true);
+    expect(shouldSpawnShield(1, 10.2, 2, 6.2, false, () => 0)).toBe(true);
+    expect(shouldSpawnShield(1, 14.9, 3, 10.2, false, () => 0)).toBe(false);
+    expect(shouldSpawnShield(2, 3, 0, Number.NEGATIVE_INFINITY, false, () => 0)).toBe(true);
+  });
+
+  it("only places shields in lanes that remain fair", () => {
+    expect(chooseShieldLane([{ lane: 0, delay: 0 }], [1], () => 0)).toBe(2);
+    expect(chooseShieldLane([{ lane: 0, delay: 0 }], [1, 2], () => 0)).toBe(null);
+  });
+
+  it("creates non-zero unique run identifiers", () => {
+    const first = createRunId(() => 0);
+    const second = createRunId(() => 0);
+    expect(first).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(second).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(first).not.toBe(second);
+    expect(first).not.toBe(`0x${"0".repeat(64)}`);
   });
 });
 
