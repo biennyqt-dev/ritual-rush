@@ -8,7 +8,6 @@ import {
   difficultyAt,
   generateFairPattern,
   MAX_DIFFICULTY_LEVEL,
-  MAX_FALL_SPEED,
   moveLane,
   shouldSpawnShield,
   type PatternItem,
@@ -382,7 +381,7 @@ export class GameEngine {
           const spawnIn = item.at - this.elapsed;
           const obstacleTravelSeconds =
             (PLAYER_Y + 0.26) /
-            (difficulty.speed * (item.fast ? 1.18 : 1));
+            difficulty.speed;
           return (
             Math.abs(spawnIn + obstacleTravelSeconds - shieldTravelSeconds) <
             1.25
@@ -406,7 +405,7 @@ export class GameEngine {
     const due = this.pending.filter((item) => item.at <= this.elapsed);
     this.pending = this.pending.filter((item) => item.at > this.elapsed);
     for (const item of due) {
-      this.spawnObject(item.lane, "ritual-logo", item.fast ? 1.18 : 1);
+      this.spawnObject(item.lane, "ritual-logo", 1);
     }
   }
 
@@ -534,12 +533,12 @@ export class GameEngine {
     context.fillRect(-12, -12, width + 24, height + 24);
 
     const difficulty = difficultyAt(this.elapsed);
+    const visualSpeed = Math.min(0.5, difficulty.speed);
     const speedProgress = Math.min(
       1,
       Math.max(
         0,
-        (difficulty.speed - BASE_FALL_SPEED) /
-          (MAX_FALL_SPEED - BASE_FALL_SPEED),
+        (visualSpeed - BASE_FALL_SPEED) / (0.5 - BASE_FALL_SPEED),
       ),
     );
     const moving = this.status === "playing";
@@ -563,9 +562,10 @@ export class GameEngine {
       const cropHeight = coverHeight / zoom;
       const maxX = Math.max(0, sourceWidth - cropWidth);
       const maxY = Math.max(0, sourceHeight - cropHeight);
+      const backgroundSpeed = visualSpeed * 0.42;
       const travelRate = moving
         ? 0.13 +
-          difficulty.speed * 0.42 +
+          backgroundSpeed +
           Math.min(MAX_DIFFICULTY_LEVEL - 1, difficulty.level - 1) * 0.0006
         : 0.035;
       const travel = time * travelRate;
@@ -636,7 +636,7 @@ export class GameEngine {
       context.stroke();
     }
 
-    const gridSpeed = moving ? 0.18 + difficulty.speed * 1.25 : 0.04;
+    const gridSpeed = moving ? 0.18 + visualSpeed * 1.25 : 0.04;
     const gridOffset = (time * gridSpeed) % 0.12;
     for (let row = -1; row < 12; row += 1) {
       const y = row * 0.12 + gridOffset;
@@ -708,7 +708,7 @@ export class GameEngine {
     }
     context.restore();
 
-    const particleSpeed = moving ? 18 + difficulty.speed * 165 : 7;
+    const particleSpeed = moving ? 18 + visualSpeed * 165 : 7;
     const particleCount = 24 + Math.round(speedProgress * 10);
     for (let index = 0; index < particleCount; index += 1) {
       const seed = index * 47.13;
@@ -730,7 +730,7 @@ export class GameEngine {
       context.strokeStyle = `rgba(191,255,0,${0.045 + speedProgress * 0.045})`;
       for (let index = 0; index < 12; index += 1) {
         const x =
-          ((index * 83 + time * (120 + difficulty.speed * 150)) %
+          ((index * 83 + time * (120 + visualSpeed * 150)) %
             (width + 160)) -
           80;
         context.beginPath();

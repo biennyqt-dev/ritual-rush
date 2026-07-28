@@ -10,11 +10,9 @@ export interface Difficulty {
 export const LEVEL_DURATION_SECONDS = 15;
 export const MAX_DIFFICULTY_LEVEL = 100;
 export const BASE_FALL_SPEED = 0.22;
-export const MAX_FALL_SPEED = 0.5;
-const EARLY_ACCELERATION = 0.16;
-const EARLY_ACCELERATION_RATE = 0.12;
-const LONG_RUN_ACCELERATION =
-  MAX_FALL_SPEED - BASE_FALL_SPEED - EARLY_ACCELERATION;
+export const TRAP_SPEED_PER_LEVEL = 0.08;
+export const MAX_FALL_SPEED =
+  BASE_FALL_SPEED + (MAX_DIFFICULTY_LEVEL - 1) * TRAP_SPEED_PER_LEVEL;
 
 export interface PatternItem {
   lane: Lane;
@@ -159,19 +157,10 @@ export function difficultyAt(seconds: number): Difficulty {
     MAX_DIFFICULTY_LEVEL - 1,
     accelerationProgress,
   );
-  const lateProgress = levelProgress / (MAX_DIFFICULTY_LEVEL - 1);
-  const earlyAcceleration =
-    EARLY_ACCELERATION *
-    (1 - Math.exp(-EARLY_ACCELERATION_RATE * levelProgress));
-  const longRunAcceleration =
-    LONG_RUN_ACCELERATION * Math.pow(lateProgress, 0.75);
-  const speed =
-    levelProgress >= MAX_DIFFICULTY_LEVEL - 1
-      ? MAX_FALL_SPEED
-      : Math.min(
-          MAX_FALL_SPEED,
-          BASE_FALL_SPEED + earlyAcceleration + longRunAcceleration,
-        );
+  const speed = Math.min(
+    MAX_FALL_SPEED,
+    BASE_FALL_SPEED + levelProgress * TRAP_SPEED_PER_LEVEL,
+  );
   return {
     level,
     speed,

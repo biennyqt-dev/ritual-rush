@@ -15,6 +15,7 @@ import {
   patternIsPossible,
   shieldTargetForLevel,
   shouldSpawnShield,
+  TRAP_SPEED_PER_LEVEL,
 } from "@/game/engine/math";
 
 describe("lane movement", () => {
@@ -86,27 +87,28 @@ describe("score and difficulty", () => {
     expect(late.speed).toBeGreaterThan(start.speed);
     expect(start.speed).toBe(BASE_FALL_SPEED);
     expect(late.speed).toBe(MAX_FALL_SPEED);
-    expect(late.speed).toBeLessThanOrEqual(0.5);
     expect(late.spawnInterval).toBeGreaterThanOrEqual(0.9);
     expect(late.level).toBe(100);
     expect(difficultyAt(99 * 15).level).toBe(100);
   });
 
-  it("noticeably increases trap speed at every level while ramping smoothly", () => {
+  it("follows the approved trap-speed formula at every level", () => {
     const before = difficultyAt(14.9);
     const after = difficultyAt(15);
     expect(before.level).toBe(1);
     expect(after.level).toBe(2);
-    expect(after.speed).toBeGreaterThan(before.speed);
-    expect(after.speed - before.speed).toBeLessThan(0.001);
+    expect(after.speed).toBeCloseTo(BASE_FALL_SPEED + TRAP_SPEED_PER_LEVEL, 8);
     expect(before.spawnInterval - after.spawnInterval).toBeLessThan(0.001);
 
-    expect(difficultyAt(9 * 15).speed).toBeGreaterThan(0.32);
+    expect(difficultyAt(0).speed).toBeCloseTo(0.22, 8);
+    expect(difficultyAt(15).speed).toBeCloseTo(0.3, 8);
+    expect(difficultyAt(30).speed).toBeCloseTo(0.38, 8);
+    expect(difficultyAt(99 * 15).speed).toBeCloseTo(8.14, 8);
 
     for (let level = 1; level < 100; level += 1) {
       const current = difficultyAt((level - 1) * 15);
       const next = difficultyAt(level * 15);
-      expect(next.speed).toBeGreaterThan(current.speed);
+      expect(next.speed - current.speed).toBeCloseTo(TRAP_SPEED_PER_LEVEL, 8);
     }
   });
 
