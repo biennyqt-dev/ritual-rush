@@ -7,6 +7,15 @@ export interface Difficulty {
   multiplier: number;
 }
 
+export const LEVEL_DURATION_SECONDS = 15;
+export const MAX_DIFFICULTY_LEVEL = 100;
+export const BASE_FALL_SPEED = 0.22;
+export const MAX_FALL_SPEED = 0.5;
+const EARLY_ACCELERATION = 0.16;
+const EARLY_ACCELERATION_RATE = 0.12;
+const LONG_RUN_ACCELERATION =
+  MAX_FALL_SPEED - BASE_FALL_SPEED - EARLY_ACCELERATION;
+
 export interface PatternItem {
   lane: Lane;
   delay: number;
@@ -141,12 +150,32 @@ export function detectCollision(
 
 export function difficultyAt(seconds: number): Difficulty {
   const normalized = Math.max(0, seconds);
-  const accelerationProgress = normalized / 15;
-  const level = Math.min(12, 1 + Math.floor(accelerationProgress));
+  const accelerationProgress = normalized / LEVEL_DURATION_SECONDS;
+  const level = Math.min(
+    MAX_DIFFICULTY_LEVEL,
+    1 + Math.floor(accelerationProgress),
+  );
+  const levelProgress = Math.min(
+    MAX_DIFFICULTY_LEVEL - 1,
+    accelerationProgress,
+  );
+  const lateProgress = levelProgress / (MAX_DIFFICULTY_LEVEL - 1);
+  const earlyAcceleration =
+    EARLY_ACCELERATION *
+    (1 - Math.exp(-EARLY_ACCELERATION_RATE * levelProgress));
+  const longRunAcceleration =
+    LONG_RUN_ACCELERATION * Math.pow(lateProgress, 0.75);
+  const speed =
+    levelProgress >= MAX_DIFFICULTY_LEVEL - 1
+      ? MAX_FALL_SPEED
+      : Math.min(
+          MAX_FALL_SPEED,
+          BASE_FALL_SPEED + earlyAcceleration + longRunAcceleration,
+        );
   return {
     level,
-    speed: Math.min(0.48, 0.195 + accelerationProgress * 0.03),
-    spawnInterval: Math.max(0.76, 1.34 - accelerationProgress * 0.045),
+    speed,
+    spawnInterval: Math.max(0.9, 1.32 - accelerationProgress * 0.03),
     multiplier: Math.min(5, 1 + Math.floor(accelerationProgress / 2)),
   };
 }

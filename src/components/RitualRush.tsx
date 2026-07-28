@@ -530,7 +530,7 @@ export function RitualRush() {
 
       {accelerationLevel !== null && snapshot.status === "playing" && (
         <div className="speed-notice" role="status" aria-live="polite">
-          <span>Network acceleration</span>
+          <span>SPEED UP</span>
           <strong>Level {accelerationLevel}</strong>
         </div>
       )}

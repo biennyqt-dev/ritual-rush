@@ -1,11 +1,14 @@
 import {
   advanceScore,
+  BASE_FALL_SPEED,
   chooseShieldLane,
   createRunId,
   DEFAULT_SHIELD_SPAWN_CONFIG,
   detectCollision,
   difficultyAt,
   generateFairPattern,
+  MAX_DIFFICULTY_LEVEL,
+  MAX_FALL_SPEED,
   moveLane,
   shouldSpawnShield,
   type PatternItem,
@@ -533,7 +536,11 @@ export class GameEngine {
     const difficulty = difficultyAt(this.elapsed);
     const speedProgress = Math.min(
       1,
-      Math.max(0, (difficulty.speed - 0.195) / 0.285),
+      Math.max(
+        0,
+        (difficulty.speed - BASE_FALL_SPEED) /
+          (MAX_FALL_SPEED - BASE_FALL_SPEED),
+      ),
     );
     const moving = this.status === "playing";
 
@@ -556,7 +563,11 @@ export class GameEngine {
       const cropHeight = coverHeight / zoom;
       const maxX = Math.max(0, sourceWidth - cropWidth);
       const maxY = Math.max(0, sourceHeight - cropHeight);
-      const travelRate = moving ? 0.13 + difficulty.speed * 0.38 : 0.035;
+      const travelRate = moving
+        ? 0.13 +
+          difficulty.speed * 0.42 +
+          Math.min(MAX_DIFFICULTY_LEVEL - 1, difficulty.level - 1) * 0.0006
+        : 0.035;
       const travel = time * travelRate;
       const sourceX =
         maxX *
@@ -638,28 +649,64 @@ export class GameEngine {
       context.stroke();
     }
 
-    for (const divider of [0.5, 1.5]) {
-      const start = this.trackPoint(divider, -0.12, width, height);
-      const end = this.trackPoint(divider, 1.1, width, height);
+    const corridorTop = -0.12;
+    const corridorBottom = 1.1;
+    const corridorLeft = this.trackPoint(-0.5, corridorTop, width, height);
+    const corridorRight = this.trackPoint(2.5, corridorTop, width, height);
+    const corridorBottomRight = this.trackPoint(
+      2.5,
+      corridorBottom,
+      width,
+      height,
+    );
+    const corridorBottomLeft = this.trackPoint(
+      -0.5,
+      corridorBottom,
+      width,
+      height,
+    );
+
+    context.save();
+    context.fillStyle = "rgba(0, 7, 5, 0.27)";
+    context.beginPath();
+    context.moveTo(corridorLeft.x, corridorLeft.y);
+    context.lineTo(corridorRight.x, corridorRight.y);
+    context.lineTo(corridorBottomRight.x, corridorBottomRight.y);
+    context.lineTo(corridorBottomLeft.x, corridorBottomLeft.y);
+    context.closePath();
+    context.fill();
+
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.shadowColor = "rgba(25, 209, 132, 0.42)";
+    context.shadowBlur = Math.max(5, width * 0.012);
+    const corridorLineWidth = Math.max(2, width / 450);
+
+    for (const [lane, accent] of [
+      [-0.5, 0.42],
+      [0.5, 0.56],
+      [1.5, 0.56],
+      [2.5, 0.42],
+    ] as const) {
+      const start = this.trackPoint(lane, corridorTop, width, height);
+      const end = this.trackPoint(lane, corridorBottom, width, height);
       const laneGradient = context.createLinearGradient(
         start.x,
         start.y,
         end.x,
         end.y,
       );
-      laneGradient.addColorStop(0, "rgba(25,209,132,0)");
-      laneGradient.addColorStop(0.42, "rgba(25,209,132,.16)");
-      laneGradient.addColorStop(
-        1,
-        `rgba(191,255,0,${0.38 + speedProgress * 0.12})`,
-      );
+      laneGradient.addColorStop(0, "rgba(25,209,132,0.16)");
+      laneGradient.addColorStop(0.42, "rgba(25,209,132,0.28)");
+      laneGradient.addColorStop(1, `rgba(25,209,132,${accent + speedProgress * 0.06})`);
       context.strokeStyle = laneGradient;
-      context.lineWidth = Math.max(1, width / 520);
+      context.lineWidth = corridorLineWidth;
       context.beginPath();
       context.moveTo(start.x, start.y);
       context.lineTo(end.x, end.y);
       context.stroke();
     }
+    context.restore();
 
     const particleSpeed = moving ? 18 + difficulty.speed * 165 : 7;
     const particleCount = 24 + Math.round(speedProgress * 10);
