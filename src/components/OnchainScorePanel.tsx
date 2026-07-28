@@ -52,6 +52,7 @@ interface OnchainScorePanelProps {
   personalBest: number;
   unlocked: AchievementDefinition[];
   onWalletConnected: (address: string | null) => void;
+  onExit: () => void;
 }
 
 function shortAddress(address: string | null | undefined) {
@@ -101,6 +102,7 @@ export function OnchainScorePanel({
   personalBest,
   unlocked,
   onWalletConnected,
+  onExit,
 }: OnchainScorePanelProps) {
   const { address, chainId, isConnected } = useAccount();
   const { connectors, connect, isPending: isConnecting } = useConnect();
@@ -349,6 +351,14 @@ export function OnchainScorePanel({
           </button>
         </div>
       )}
+
+      <button
+        className="outline-button score-record-action score-record-exit"
+        type="button"
+        onClick={onExit}
+      >
+        EXIT
+      </button>
 
       {action && (
         <div className="score-record-confirm" role="dialog" aria-label="Confirm Ritual transaction">

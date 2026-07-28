@@ -16,6 +16,11 @@ export function Modal({
   onClose: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     const panel = panelRef.current;
@@ -26,7 +31,7 @@ export function Modal({
     focusable?.focus();
 
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
       if (event.key !== "Tab" || !panel) return;
       const items = Array.from(
         panel.querySelectorAll<HTMLElement>(
@@ -49,7 +54,7 @@ export function Modal({
       document.removeEventListener("keydown", handleKey);
       previous?.focus();
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>

@@ -755,6 +755,7 @@ export function RitualRush() {
             personalBest={Math.max(bestScore, runResult.bestScore)}
             unlocked={unlocked}
             onWalletConnected={setWalletAddress}
+            onExit={returnToMenu}
           />
         </section>
       )}

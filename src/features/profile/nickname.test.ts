@@ -18,6 +18,13 @@ describe("nickname validation", () => {
     expect(validateNickname("<script>alert(1)</script>").ok).toBe(false);
   });
 
+  it("accepts common display-name symbols as one continuous value", () => {
+    expect(validateNickname("Rush #100! @Home")).toEqual({
+      ok: true,
+      value: "Rush #100! @Home",
+    });
+  });
+
   it("generates a stable guest-shaped default", () => {
     expect(generateGuestNickname(() => 0.42)).toBe("Guest-4780");
   });

@@ -9,8 +9,7 @@ export interface NicknameResult {
 export function validateNickname(input: string): NicknameResult {
   const value = input
     .trim()
-    .replace(/\s+/g, " ")
-    .replace(/[<>]/g, "");
+    .replace(/\s+/g, " ");
 
   if (!value) {
     return { ok: false, value: "", error: "Choose a nickname to continue." };
@@ -22,11 +21,11 @@ export function validateNickname(input: string): NicknameResult {
       error: `Keep it to ${MAX_NICKNAME_LENGTH} characters.`,
     };
   }
-  if (!/^[\p{L}\p{N} _.-]+$/u.test(value)) {
+  if (/[<>]/u.test(value) || /[\p{Cc}\p{Cf}]/u.test(value)) {
     return {
       ok: false,
       value,
-      error: "Use letters, numbers, spaces, dots, dashes, or underscores.",
+      error: "Use printable letters, numbers, spaces, or common symbols.",
     };
   }
   return { ok: true, value };
