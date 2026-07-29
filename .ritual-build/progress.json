@@ -247,13 +247,28 @@
     },
     {
       "phase": 21,
-      "status": "in_progress",
+      "status": "complete",
       "artifacts": [
         "Frontend ABI and contract address updated for registry version 3.0.0",
         "Onchain leaderboard now reads confirmed events and keeps each wallet's highest score",
-        "Local/demo leaderboard and score-card paths removed"
+        "Local/demo leaderboard and score-card paths removed",
+        "Nickname helper and continuous emoji/symbol input verified on desktop and 390px mobile",
+        "Score record panel shows only Record your score and Exit",
+        "Confirmed leaderboard row exposes nickname, shortened wallet, and successful explorer link"
       ],
-      "next_file": "src/components/OnchainScorePanel.tsx"
+      "next_file": null
+    },
+    {
+      "phase": 22,
+      "status": "complete",
+      "artifacts": [
+        "Foundry contract build and 6-test suite passed",
+        "Frontend typecheck, 39 tests, lint, and production build passed",
+        "Commit 90647b1 pushed to GitHub main",
+        "Vercel production deployment dpl_FSNYKm3BBWW8SjPZ5JAQfJdbuqmR ready and aliased",
+        "Production alias returned HTTP 200"
+      ],
+      "next_file": null
     }
   ],
   "decisions": [
@@ -295,6 +310,6 @@
     "precompile_settled": false,
     "frontend_renders": true,
     "frontend_connects": true,
-    "e2e_complete": false
+    "e2e_complete": true
   }
 }
