@@ -290,6 +290,7 @@
         "Official cast code and read-call checks passed for VERSION 3.0.0 and MAX_SPEED_LEVEL 100",
         "Official standard-json verification input generated and submitted through Ritual Explorer Verify & Publish",
         "Explorer reports Verified Contract with solc v0.8.24+commit.e11b9ed9",
+        "Simulated and confirmed ScoreRecorded transaction 0x3284594262c03fc320fdc80895e710095856deed029b4d6ef2878a4c325f516b against the official registry",
         "Frontend and Foundry tests passed after the generated ABI migration",
         "Commit 2c63fb6 pushed to GitHub main and Vercel production deployment dpl_GtBr1dy4vjwpRg8n5dNjfhSqhadt returned READY"
       ],
