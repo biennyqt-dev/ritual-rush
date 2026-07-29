@@ -2,8 +2,8 @@ import type { Address } from "viem";
 import { RITUAL_NETWORK } from "@/lib/ritual";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-export const DEPLOYED_RITUAL_RUSH_V2_ADDRESS =
-  "0xff63baef4911e909d1546f4ca24af2797c96279e" as Address;
+export const DEPLOYED_RITUAL_RUSH_ADDRESS =
+  "0xa4eca5499d798c01dd2f8710d2520220b6177020" as Address;
 
 function configuredAddress(value: string | undefined): Address | null {
   if (!value || value.toLowerCase() === ZERO_ADDRESS) return null;
@@ -12,9 +12,9 @@ function configuredAddress(value: string | undefined): Address | null {
 
 export const RITUAL_RUSH_CONTRACT_ADDRESS =
   configuredAddress(process.env.NEXT_PUBLIC_RITUAL_RUSH_CONTRACT) ??
-  DEPLOYED_RITUAL_RUSH_V2_ADDRESS;
+  DEPLOYED_RITUAL_RUSH_ADDRESS;
 
-export const RITUAL_RUSH_DEPLOYMENT_BLOCK = 51035838n;
+export const RITUAL_RUSH_DEPLOYMENT_BLOCK = 52350865n;
 
 export function ritualRushContractExplorerUrl(
   address: Address | null = RITUAL_RUSH_CONTRACT_ADDRESS,
@@ -38,16 +38,10 @@ export const RITUAL_RUSH_CONTRACT_ABI = [
       { name: "speedLevel", type: "uint32" },
       { name: "runDuration", type: "uint32" },
       { name: "runId", type: "bytes32" },
+      { name: "nickname", type: "string" },
       { name: "metadataURI", type: "string" },
     ],
     outputs: [{ name: "newPersonalBest", type: "bool" }],
-  },
-  {
-    type: "function",
-    name: "mintScoreCard",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "runId", type: "bytes32" }],
-    outputs: [{ name: "tokenId", type: "uint256" }],
   },
   {
     type: "function",
@@ -67,7 +61,7 @@ export const RITUAL_RUSH_CONTRACT_ABI = [
           { name: "runDuration", type: "uint32" },
           { name: "timestamp", type: "uint64" },
           { name: "exists", type: "bool" },
-          { name: "minted", type: "bool" },
+          { name: "nickname", type: "string" },
           { name: "metadataURI", type: "string" },
         ],
       },
@@ -99,20 +93,10 @@ export const RITUAL_RUSH_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "tokenIdForRun",
+    name: "MAX_SPEED_LEVEL",
     stateMutability: "view",
-    inputs: [
-      { name: "player", type: "address" },
-      { name: "runId", type: "bytes32" },
-    ],
-    outputs: [{ name: "", type: "uint256" }],
-  },
-  {
-    type: "function",
-    name: "tokenURI",
-    stateMutability: "view",
-    inputs: [{ name: "tokenId", type: "uint256" }],
-    outputs: [{ name: "", type: "string" }],
+    inputs: [],
+    outputs: [{ name: "", type: "uint32" }],
   },
   {
     type: "function",
@@ -138,19 +122,9 @@ export const RITUAL_RUSH_CONTRACT_ABI = [
       { name: "speedLevel", type: "uint32", indexed: false },
       { name: "runDuration", type: "uint32", indexed: false },
       { name: "runId", type: "bytes32", indexed: true },
+      { name: "nickname", type: "string", indexed: false },
       { name: "metadataURI", type: "string", indexed: false },
       { name: "timestamp", type: "uint256", indexed: false },
-    ],
-  },
-  {
-    type: "event",
-    name: "ScoreCardMinted",
-    anonymous: false,
-    inputs: [
-      { name: "player", type: "address", indexed: true },
-      { name: "runId", type: "bytes32", indexed: true },
-      { name: "tokenId", type: "uint256", indexed: true },
-      { name: "metadataURI", type: "string", indexed: false },
     ],
   },
 ] as const;
@@ -161,6 +135,6 @@ export type ScoreRecordView = {
   runDuration: number;
   timestamp: bigint;
   exists: boolean;
-  minted: boolean;
+  nickname: string;
   metadataURI: string;
 };

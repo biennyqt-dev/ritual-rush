@@ -28,22 +28,25 @@ import {
   formatRunDuration,
   scoreMetadataReference,
 } from "@/lib/scoreRecord";
-import { rankOnchainScores } from "@/lib/onchainLeaderboard";
+import { rankOnchainScores, type OnchainScoreRecord } from "@/lib/onchainLeaderboard";
 
 const SUBMISSION_KEY = "ritual-rush:onchain-runs:v1";
 const scoreRecordedEvent = parseAbiItem(
-  "event ScoreRecorded(address indexed player,uint256 score,uint32 speedLevel,uint32 runDuration,bytes32 indexed runId,string metadataURI,uint256 timestamp)",
+  "event ScoreRecorded(address indexed player,uint256 score,uint32 speedLevel,uint32 runDuration,bytes32 indexed runId,string nickname,string metadataURI,uint256 timestamp)",
 );
 
-type ScoreAction = "record" | "mint";
-type PanelState = "idle" | "confirming" | "submitted" | "confirmed" | "rejected" | "failed";
+type PanelState =
+  | "idle"
+  | "confirming"
+  | "simulating"
+  | "submitted"
+  | "confirmed"
+  | "rejected"
+  | "failed";
 
 interface LocalRunState {
   recorded: boolean;
-  minted: boolean;
-  tokenId?: string;
   recordHash?: string;
-  mintHash?: string;
 }
 
 interface OnchainScorePanelProps {
@@ -60,16 +63,21 @@ function shortAddress(address: string | null | undefined) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
+function formatRecordedDate(timestamp: bigint): string {
+  const raw = Number(timestamp);
+  const milliseconds = raw > 100_000_000_000 ? raw : raw * 1000;
+  const date = new Date(milliseconds);
+  return Number.isNaN(date.getTime()) ? "—" : date.toISOString().slice(0, 10);
+}
+
 function readLocalRunState(runId: string): LocalRunState {
-  if (typeof window === "undefined") {
-    return { recorded: false, minted: false };
-  }
+  if (typeof window === "undefined") return { recorded: false };
   try {
     const raw = window.localStorage.getItem(SUBMISSION_KEY);
     const parsed = raw ? (JSON.parse(raw) as Record<string, LocalRunState>) : {};
-    return parsed[runId] ?? { recorded: false, minted: false };
+    return parsed[runId] ?? { recorded: false };
   } catch {
-    return { recorded: false, minted: false };
+    return { recorded: false };
   }
 }
 
@@ -81,19 +89,45 @@ function saveLocalRunState(runId: string, value: LocalRunState) {
     parsed[runId] = value;
     window.localStorage.setItem(SUBMISSION_KEY, JSON.stringify(parsed));
   } catch {
-    // Storage is an enhancement; the contract remains the source of truth.
+    // Browser storage is only a convenience; the contract remains canonical.
   }
 }
 
 function errorLabel(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error ?? "");
+  const candidate = error as { shortMessage?: string; message?: string } | null;
+  const message = candidate?.shortMessage ?? candidate?.message ?? String(error ?? "");
   if (/reject|denied|user canceled|user denied/i.test(message)) {
     return "Transaction rejected in wallet.";
   }
   if (/insufficient|balance|funds|gas required/i.test(message)) {
-    return "Insufficient RITUAL for gas.";
+    return "Insufficient testnet RITUAL for normal network gas.";
   }
-  return "Transaction failed. Check your Ritual Testnet balance and try again.";
+  if (/DuplicateRun/i.test(message)) {
+    return "This run ID was already recorded. Start a new run before recording again.";
+  }
+  if (/InvalidSpeedLevel/i.test(message)) {
+    return "The run level is outside the supported Ritual Rush range (1–100).";
+  }
+  if (/InvalidScore/i.test(message)) {
+    return "The score is outside the valid Ritual Rush range.";
+  }
+  if (/InvalidRunDuration/i.test(message)) {
+    return "The run duration is outside the valid range.";
+  }
+  if (/InvalidRunId/i.test(message)) {
+    return "This run did not receive a valid unique run ID. Start a new run.";
+  }
+  if (/NicknameTooLong/i.test(message)) {
+    return "That nickname is too long to record onchain.";
+  }
+  if (/MetadataTooLong/i.test(message)) {
+    return "The score metadata is too long for the Ritual registry.";
+  }
+  const compact = message.replace(/\s+/g, " ").trim();
+  if (compact) {
+    return `Ritual Testnet simulation failed: ${compact.slice(0, 180)}`;
+  }
+  return "Ritual Testnet transaction failed. Check the wallet network and testnet RITUAL balance.";
 }
 
 export function OnchainScorePanel({
@@ -107,12 +141,11 @@ export function OnchainScorePanel({
   const { address, chainId, isConnected } = useAccount();
   const { connectors, connect, isPending: isConnecting } = useConnect();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
+  const publicClient = usePublicClient({ chainId: RITUAL_CHAIN_ID });
   const contractAddress = RITUAL_RUSH_CONTRACT_ADDRESS;
   const networkReady = Boolean(address && isConnected && chainId === RITUAL_CHAIN_ID);
   const connector = connectors[0];
-  const [action, setAction] = useState<ScoreAction | null>(null);
   const [recordState, setRecordState] = useState<PanelState>("idle");
-  const [mintState, setMintState] = useState<PanelState>("idle");
   const [localState, setLocalState] = useState<LocalRunState>(() =>
     readLocalRunState(result.runId),
   );
@@ -126,9 +159,7 @@ export function OnchainScorePanel({
     query: { enabled: Boolean(contractAddress), retry: 3 },
   });
   const registryMismatch =
-    contractVersion !== undefined && contractVersion !== "2.0.0";
-  // The public v2 address is known and write-capable even while the version
-  // read is still loading or a wallet RPC temporarily declines the read.
+    contractVersion !== undefined && contractVersion !== "3.0.0";
   const registryReady = Boolean(contractAddress) && !registryMismatch;
 
   const {
@@ -138,19 +169,8 @@ export function OnchainScorePanel({
     isPending: isRecordWalletPending,
     reset: resetRecord,
   } = useWriteContract();
-  const {
-    writeContract: writeMint,
-    data: mintHash,
-    error: mintError,
-    isPending: isMintWalletPending,
-    reset: resetMint,
-  } = useWriteContract();
   const recordReceipt = useWaitForTransactionReceipt({
     hash: recordHash,
-    confirmations: 1,
-  });
-  const mintReceipt = useWaitForTransactionReceipt({
-    hash: mintHash,
     confirmations: 1,
   });
 
@@ -162,114 +182,63 @@ export function OnchainScorePanel({
 
   useEffect(() => {
     setLocalState(readLocalRunState(result.runId));
-    setAction(null);
     setRecordState("idle");
-    setMintState("idle");
     setError(null);
     resetRecord();
-    resetMint();
-  }, [resetMint, resetRecord, result.runId]);
+  }, [resetRecord, result.runId]);
 
   useEffect(() => {
     if (!recordHash) return;
-    setRecordState(recordReceipt.isSuccess ? "confirmed" : "submitted");
-    if (recordReceipt.isSuccess && !localState.recorded) {
-      const next = {
-        ...localState,
-        recorded: true,
-        recordHash,
-      };
-      setLocalState(next);
-      saveLocalRunState(result.runId, next);
+    if (recordReceipt.isSuccess) {
+      setRecordState("confirmed");
+      if (!localState.recorded) {
+        const next = { recorded: true, recordHash };
+        setLocalState(next);
+        saveLocalRunState(result.runId, next);
+      }
+    } else if (recordReceipt.isError) {
+      setRecordState("failed");
+      setError("The Ritual Testnet record transaction reverted. No score was saved.");
+    } else {
+      setRecordState("submitted");
     }
-  }, [localState, recordHash, recordReceipt.isSuccess, result.runId]);
-
-  useEffect(() => {
-    if (!mintHash) return;
-    setMintState(mintReceipt.isSuccess ? "confirmed" : "submitted");
-    if (mintReceipt.isSuccess && !localState.minted) {
-      const tokenId = mintReceipt.data?.logs
-        .map((log) => log.topics[3])
-        .find(Boolean);
-      const next = {
-        ...localState,
-        minted: true,
-        mintHash,
-        tokenId: tokenId ? BigInt(tokenId).toString() : localState.tokenId,
-      };
-      setLocalState(next);
-      saveLocalRunState(result.runId, next);
-    }
-  }, [localState, mintHash, mintReceipt.data, mintReceipt.isSuccess, result.runId]);
+  }, [localState.recorded, recordHash, recordReceipt.isError, recordReceipt.isSuccess, result.runId]);
 
   useEffect(() => {
     if (recordError) {
       setRecordState(/reject|denied|cancel/i.test(recordError.message) ? "rejected" : "failed");
       setError(errorLabel(recordError));
     }
-    if (mintError) {
-      setMintState(/reject|denied|cancel/i.test(mintError.message) ? "rejected" : "failed");
-      setError(errorLabel(mintError));
-    }
-    if (recordReceipt.isError) {
-      setRecordState("failed");
-      setError("Record transaction reverted on Ritual Testnet.");
-    }
-    if (mintReceipt.isError) {
-      setMintState("failed");
-      setError("Mint transaction reverted on Ritual Testnet.");
-    }
-  }, [mintError, mintReceipt.isError, recordError, recordReceipt.isError]);
+  }, [recordError]);
 
   const startWalletConnection = () => {
     if (connector) connect({ connector });
   };
 
-  const requestAction = (nextAction: ScoreAction) => {
-    setError(null);
-    setAction(nextAction);
-  };
-
-  const submitRecord = () => {
+  const submitRecord = async () => {
     if (!contractAddress || !address || !networkReady || !registryReady) return;
     setError(null);
-    setAction(null);
-    setRecordState("submitted");
+    setRecordState("simulating");
     try {
-      writeRecord({
+      if (!publicClient) throw new Error("Ritual Testnet RPC is unavailable.");
+      const simulation = await publicClient.simulateContract({
         address: contractAddress,
         abi: RITUAL_RUSH_CONTRACT_ABI,
         functionName: "recordScore",
-        chainId: RITUAL_CHAIN_ID,
+        account: address,
         args: [
           BigInt(Math.max(1, Math.floor(result.score))),
           result.speedLevel,
           Math.max(1, Math.floor(result.elapsedSeconds)),
           result.runId as `0x${string}`,
+          nickname,
           metadataURI,
         ],
       });
+      setRecordState("submitted");
+      writeRecord(simulation.request);
     } catch (submissionError) {
-      setRecordState("failed");
-      setError(errorLabel(submissionError));
-    }
-  };
-
-  const submitMint = () => {
-    if (!contractAddress || !address || !networkReady || !registryReady) return;
-    setError(null);
-    setAction(null);
-    setMintState("submitted");
-    try {
-      writeMint({
-        address: contractAddress,
-        abi: RITUAL_RUSH_CONTRACT_ABI,
-        functionName: "mintScoreCard",
-        chainId: RITUAL_CHAIN_ID,
-        args: [result.runId as `0x${string}`],
-      });
-    } catch (submissionError) {
-      setMintState("failed");
+      setRecordState(/reject|denied|cancel/i.test(String(submissionError)) ? "rejected" : "failed");
       setError(errorLabel(submissionError));
     }
   };
@@ -278,20 +247,21 @@ export function OnchainScorePanel({
   const recordBusy =
     isRecordWalletPending ||
     recordReceipt.isLoading ||
+    recordState === "simulating" ||
     recordState === "submitted";
-  const mintBusy =
-    isMintWalletPending || mintReceipt.isLoading || mintState === "submitted";
   const statusLabel = !contractAddress
     ? "Registry not configured"
     : recordConfirmed
       ? "Recorded on Ritual Testnet"
       : recordBusy
-        ? "Recording on Ritual"
+        ? recordState === "simulating"
+          ? "Checking transaction"
+          : "Recording on Ritual"
         : recordState === "rejected"
           ? "Record rejected"
           : recordState === "failed"
             ? "Record failed"
-        : ritualNetworkMessage(Boolean(isConnected), chainId, registryReady);
+            : ritualNetworkMessage(Boolean(isConnected), chainId, registryReady);
 
   return (
     <aside className="score-record-panel" aria-label="Ritual score recording">
@@ -325,7 +295,7 @@ export function OnchainScorePanel({
       <p className="score-record-note">
         Recording proves this wallet submitted the run record. It does not make
         gameplay cheat-proof. This action uses a small amount of testnet RITUAL
-        for network gas.
+        for normal network gas.
       </p>
 
       {!isConnected && (
@@ -335,21 +305,16 @@ export function OnchainScorePanel({
       )}
       {isConnected && chainId !== RITUAL_CHAIN_ID && (
         <button className="outline-button score-record-action" type="button" disabled={isSwitching} onClick={() => switchChain({ chainId: RITUAL_CHAIN_ID })}>
-          {isSwitching ? "Switching…" : "Switch to Ritual Testnet to record or mint your score."}
+          {isSwitching ? "Switching…" : "Switch to Ritual Testnet to record your score."}
         </button>
       )}
       {isConnected && chainId === RITUAL_CHAIN_ID && registryMismatch && (
         <div className="panel-state panel-state--error score-record-action">This wallet is connected to an older score registry. Refresh the app before recording.</div>
       )}
       {isConnected && chainId === RITUAL_CHAIN_ID && registryReady && (
-        <div className="score-record-actions">
-          <button className="primary-cta primary-cta--compact" type="button" disabled={!canSubmitRun({ recorded: recordConfirmed, pending: recordBusy })} onClick={() => requestAction("record")}>
-            {recordConfirmed ? "Score Recorded" : recordBusy ? "Recording…" : "Record your score"}
-          </button>
-          <button className="outline-button" type="button" disabled={!recordConfirmed || localState.minted || mintBusy} onClick={() => requestAction("mint")}>
-            {localState.minted ? `Minted #${localState.tokenId ?? "—"}` : mintBusy ? "Minting…" : mintState === "rejected" ? "Mint rejected" : mintState === "failed" ? "Mint failed" : "Mint Score Card"}
-          </button>
-        </div>
+        <button className="primary-cta primary-cta--compact score-record-action" type="button" disabled={!canSubmitRun({ recorded: recordConfirmed, pending: recordBusy })} onClick={() => void submitRecord()}>
+          {recordConfirmed ? "Score Recorded" : recordBusy ? (recordState === "simulating" ? "Checking…" : "Recording…") : "Record your score"}
+        </button>
       )}
 
       <button
@@ -360,23 +325,11 @@ export function OnchainScorePanel({
         EXIT
       </button>
 
-      {action && (
-        <div className="score-record-confirm" role="dialog" aria-label="Confirm Ritual transaction">
-          <strong>{action === "record" ? "Ready to record this score?" : "Mint this score card?"}</strong>
-          <span>Final score {result.score.toLocaleString()} · {formatRunDuration(result.elapsedSeconds)} · one normal Ritual gas transaction.</span>
-          <div>
-            <button className="primary-cta primary-cta--compact" type="button" onClick={action === "record" ? submitRecord : submitMint}>
-              Confirm {action === "record" ? "Record" : "Mint"}
-            </button>
-            <button className="text-button" type="button" onClick={() => setAction(null)}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      {(recordHash || mintHash) && (
+      {recordHash && (
         <div className="score-record-links">
-          {recordHash && <a href={ritualRushTransactionExplorerUrl(recordHash)} target="_blank" rel="noreferrer" title={`Open transaction ${recordHash}`}>Open record tx ↗ {shortAddress(recordHash)}</a>}
-          {mintHash && <a href={ritualRushTransactionExplorerUrl(mintHash)} target="_blank" rel="noreferrer" title={`Open transaction ${mintHash}`}>Open mint tx ↗ {shortAddress(mintHash)}</a>}
+          <a href={ritualRushTransactionExplorerUrl(recordHash)} target="_blank" rel="noreferrer" title={`Open transaction ${recordHash}`}>
+            Open successful record tx ↗ {shortAddress(recordHash)}
+          </a>
         </div>
       )}
       {recordConfirmed && <span className="score-record-success">Recorded on Ritual Testnet ✓</span>}
@@ -385,15 +338,7 @@ export function OnchainScorePanel({
   );
 }
 
-interface HistoryRow {
-  player: string;
-  runId: string;
-  score: bigint;
-  speedLevel: number;
-  runDuration: number;
-  timestamp: bigint;
-  txHash?: string;
-}
+type HistoryRow = OnchainScoreRecord;
 
 export function OnchainHistoryPanel() {
   const { address } = useAccount();
@@ -406,7 +351,7 @@ export function OnchainHistoryPanel() {
   const refresh = useCallback(async () => {
     if (!RITUAL_RUSH_CONTRACT_ADDRESS || !publicClient) {
       setState("error");
-      setMessage("The score registry is not configured for this preview.");
+      setMessage("The Ritual score registry is not configured.");
       return;
     }
     setState("loading");
@@ -425,6 +370,7 @@ export function OnchainHistoryPanel() {
             speedLevel?: number;
             runDuration?: number;
             runId?: string;
+            nickname?: string;
             timestamp?: bigint;
           };
           if (
@@ -439,6 +385,7 @@ export function OnchainHistoryPanel() {
           }
           return {
             player: args.player,
+            nickname: args.nickname?.trim() ?? "",
             runId: args.runId,
             score: args.score,
             speedLevel: args.speedLevel,
@@ -448,13 +395,12 @@ export function OnchainHistoryPanel() {
           };
         })
         .filter((row): row is HistoryRow => row !== null);
-      const nextRows = rankOnchainScores(parsedRows, 25);
-      setRows(nextRows);
+      setRows(rankOnchainScores(parsedRows, 25));
       setLastUpdated(new Date().toISOString());
       setState("success");
-    } catch {
+    } catch (readError) {
       setState("error");
-      setMessage("Live scores could not be read. Try refreshing.");
+      setMessage(errorLabel(readError));
     }
   }, [publicClient]);
 
@@ -468,7 +414,7 @@ export function OnchainHistoryPanel() {
     <div className="onchain-history">
       <div className="onchain-history-toolbar">
         <div>
-          <span className="data-label">Live onchain leaderboard</span>
+          <span className="data-label">Confirmed Ritual Testnet events</span>
           <h3>YOUR RECORD SCORE IN RITUAL RUSH</h3>
         </div>
         <div className="onchain-history-actions">
@@ -478,27 +424,28 @@ export function OnchainHistoryPanel() {
           </button>
         </div>
       </div>
-      {message && <div className="panel-state panel-state--error">{message}</div>}
-      {state === "success" && rows.length === 0 && <div className="panel-state">No records have been written yet.</div>}
+      {message && <div className="panel-state panel-state--error" role="alert">{message}</div>}
+      {state === "loading" && <div className="panel-state" role="status">Reading confirmed onchain scores…</div>}
+      {state === "success" && rows.length === 0 && <div className="panel-state">No onchain scores recorded yet.</div>}
       {rows.length > 0 && (
         <div className="onchain-history-table-wrap">
           <table className="leaderboard-table onchain-history-table">
-            <thead><tr><th>Rank</th><th>Score</th><th>Player</th><th>Level</th><th>Duration</th><th>Recorded</th><th>Transaction</th></tr></thead>
+            <thead><tr><th>Rank</th><th>Score</th><th>Runner</th><th>Level</th><th>Duration</th><th>Recorded</th><th>Transaction</th></tr></thead>
             <tbody>
               {rows.map((row, index) => (
                 <tr key={`${row.player}-${row.runId}`} className={row.player.toLowerCase() === address?.toLowerCase() ? "is-current-player" : undefined}>
                   <td>{index + 1}</td>
                   <td>{row.score.toLocaleString()}</td>
                   <td>
-                    <code>{shortAddress(row.player)}</code>
-                    {row.player.toLowerCase() === address?.toLowerCase() && <small className="history-you">You</small>}
+                    <strong>{row.nickname || "Anonymous"}</strong>
+                    <small><code>{shortAddress(row.player)}</code>{row.player.toLowerCase() === address?.toLowerCase() && <span className="history-you">You</span>}</small>
                   </td>
                   <td>{row.speedLevel}</td>
                   <td>{formatRunDuration(row.runDuration)}</td>
-                  <td>{new Date(Number(row.timestamp) * 1000).toISOString().slice(0, 10)}</td>
+                  <td>{formatRecordedDate(row.timestamp)}</td>
                   <td>
                     {row.txHash ? (
-                      <a href={ritualRushTransactionExplorerUrl(row.txHash)} target="_blank" rel="noreferrer" title={`Open transaction ${row.txHash}`}>
+                      <a href={ritualRushTransactionExplorerUrl(row.txHash)} target="_blank" rel="noreferrer" title={`Open successful transaction ${row.txHash}`}>
                         Open tx ↗
                       </a>
                     ) : (

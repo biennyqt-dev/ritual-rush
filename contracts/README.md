@@ -1,29 +1,27 @@
 # Ritual Rush contracts
 
-`RitualRush.sol` is the v2 public testnet registry for player-submitted score
-records and optional score-card NFTs. It is intentionally permissionless and has
-no owner, upgrade path, fees, custodied funds, or privileged withdrawal mechanism.
+`RitualRush.sol` is the permissionless score registry for Ritual Testnet. It
+accepts valid score claims from any connected wallet and has no owner, fees,
+custodied funds, privileged withdrawal path, or token logic.
 
-The contract exposes `recordScore(...)` for one immutable run ID per wallet and
-`mintScoreCard(runId)` as an optional second transaction. Both actions are
-explicitly initiated by the player; the game never sends a transaction by itself.
-
-The browser game remains playable without a wallet. On-chain scores are public
-claims from connected wallets, not proof that a score was earned fairly.
+Each run is recorded once per wallet by a unique `bytes32 runId`. The
+`ScoreRecorded` event includes the wallet, score, level, duration, nickname,
+metadata reference, and block timestamp. The contract accepts Levels 1–100,
+matching the game’s trap-speed progression.
 
 ## Ritual skill trace
 
 The contract and deployment workflow follow the official
 [`ritual-foundation/ritual-dapp-skills`](https://github.com/ritual-foundation/ritual-dapp-skills)
-repository pinned in this project at `.codex/skills/ritual-dapp-skills`.
+repository kept at `.codex/skills/ritual-dapp-skills`.
 
 Applied requirements:
 
 - Ritual Chain ID `1979`
-- EIP-1559 deployment transaction (v2 deployed to Ritual public testnet)
+- EIP-1559 deployment transaction
 - `https://rpc.ritualfoundation.org`
-- Custom verifier at `https://rpc.ritualfoundation.org/api/verify`
-- Compile, unit-test, deploy, verify, bytecode-check, and read-call checkpoints
+- Runtime bytecode and read-call verification
+- Frontend simulation before score transactions
 
 ## Local verification
 
@@ -33,8 +31,9 @@ forge build
 forge test -vvv
 ```
 
-The v2 source compiles with Solidity 0.8.24 and is deployed at
-`0xff63baef4911e909d1546f4ca24af2797c96279e` with transaction
-`0xee718873372afcb4ca2c37179546eba44476f851c792198098c35fe1c0d7ca1a`.
-Foundry is not installed in the current shell, so the Foundry suite must still
-be run in a Foundry-enabled environment.
+The deployment helper reads the Solidity 0.8.24 compiler output from
+`contracts/out-solc`, verifies the Ritual chain, deploys the current registry,
+and checks `VERSION() == 3.0.0` plus `MAX_SPEED_LEVEL() == 100`.
+
+Current public deployment: [`0xa4eca5499d798c01dd2f8710d2520220b6177020`](https://explorer.ritualfoundation.org/address/0xa4eca5499d798c01dd2f8710d2520220b6177020),
+deployed by [`0xa8260b3c559c1f2dc401975846d59a2bc900887af878842e2d30c5e8917fd7c4`](https://explorer.ritualfoundation.org/tx/0xa8260b3c559c1f2dc401975846d59a2bc900887af878842e2d30c5e8917fd7c4).

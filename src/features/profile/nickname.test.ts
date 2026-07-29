@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   generateGuestNickname,
+  NICKNAME_HELPER_TEXT,
   validateNickname,
 } from "@/features/profile/nickname";
 
@@ -12,17 +13,23 @@ describe("nickname validation", () => {
     });
   });
 
-  it("rejects empty, overly long, and injection-like names", () => {
+  it("rejects empty, overly long, and invisible control characters", () => {
     expect(validateNickname("   ").ok).toBe(false);
     expect(validateNickname("x".repeat(30)).ok).toBe(false);
-    expect(validateNickname("<script>alert(1)</script>").ok).toBe(false);
+    expect(validateNickname("Runner\u0000").ok).toBe(false);
   });
 
-  it("accepts common display-name symbols as one continuous value", () => {
-    expect(validateNickname("Rush #100! @Home")).toEqual({
+  it("accepts symbols and emoji as one continuous value", () => {
+    expect(validateNickname("<Rush> #1 🚀")).toEqual({
       ok: true,
-      value: "Rush #100! @Home",
+      value: "<Rush> #1 🚀",
     });
+  });
+
+  it("publishes the display-name helper text", () => {
+    expect(NICKNAME_HELPER_TEXT).toBe(
+      "Letters, numbers, spaces, emojis, and symbols are allowed.",
+    );
   });
 
   it("generates a stable guest-shaped default", () => {

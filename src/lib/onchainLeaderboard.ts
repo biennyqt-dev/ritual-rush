@@ -1,5 +1,6 @@
 export interface OnchainScoreRecord {
   player: string;
+  nickname: string;
   runId: string;
   score: bigint;
   speedLevel: number;
@@ -12,7 +13,20 @@ export function rankOnchainScores(
   records: OnchainScoreRecord[],
   limit = 25,
 ): OnchainScoreRecord[] {
-  return [...records]
+  const highestByWallet = new Map<string, OnchainScoreRecord>();
+  for (const record of records) {
+    const key = record.player.toLowerCase();
+    const existing = highestByWallet.get(key);
+    if (
+      !existing ||
+      record.score > existing.score ||
+      (record.score === existing.score && record.timestamp > existing.timestamp)
+    ) {
+      highestByWallet.set(key, record);
+    }
+  }
+
+  return [...highestByWallet.values()]
     .sort((left, right) => {
       if (left.score !== right.score) return left.score > right.score ? -1 : 1;
       if (left.timestamp !== right.timestamp) return left.timestamp > right.timestamp ? -1 : 1;

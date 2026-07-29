@@ -1,4 +1,6 @@
 export const MAX_NICKNAME_LENGTH = 18;
+export const NICKNAME_HELPER_TEXT =
+  "Letters, numbers, spaces, emojis, and symbols are allowed.";
 
 export interface NicknameResult {
   ok: boolean;
@@ -21,11 +23,11 @@ export function validateNickname(input: string): NicknameResult {
       error: `Keep it to ${MAX_NICKNAME_LENGTH} characters.`,
     };
   }
-  if (/[<>]/u.test(value) || /[\p{Cc}\p{Cf}]/u.test(value)) {
+  if (/[\p{Cc}]/u.test(value)) {
     return {
       ok: false,
       value,
-      error: "Use printable letters, numbers, spaces, or common symbols.",
+      error: "Remove invisible control characters and try again.",
     };
   }
   return { ok: true, value };

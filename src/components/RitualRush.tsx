@@ -24,11 +24,8 @@ import {
   type AchievementStore,
 } from "@/features/achievements/achievements";
 import {
-  localLeaderboard,
-  type LeaderboardEntry,
-} from "@/features/leaderboard/leaderboard";
-import {
   generateGuestNickname,
+  NICKNAME_HELPER_TEXT,
   validateNickname,
 } from "@/features/profile/nickname";
 import { shareOnX } from "@/features/sharing/sharing";
@@ -45,9 +42,7 @@ import type {
   RunResult,
 } from "@/game/engine/types";
 import {
-  millisecondsUntilUtcReset,
   readJson,
-  utcDateKey,
   writeJson,
 } from "@/lib/storage";
 
@@ -55,7 +50,7 @@ const PROFILE_KEY = "ritual-rush:profile:v1";
 const BEST_KEY = "ritual-rush:best:v1";
 const SETTINGS_KEY = "ritual-rush:settings:v1";
 
-type Panel = "leaderboard" | "achievements" | "profile" | "onchain" | null;
+type Panel = "achievements" | "profile" | "onchain" | null;
 
 const EMPTY_SNAPSHOT: GameSnapshot = {
   status: "idle",
@@ -162,30 +157,6 @@ function AchievementCard({
   );
 }
 
-function useUtcResetLabel(active: boolean) {
-  const [label, setLabel] = useState("00:00:00");
-
-  useEffect(() => {
-    if (!active) return;
-    const update = () => {
-      const remaining = millisecondsUntilUtcReset();
-      const hours = Math.floor(remaining / 3_600_000);
-      const minutes = Math.floor((remaining % 3_600_000) / 60_000);
-      const seconds = Math.floor((remaining % 60_000) / 1000);
-      setLabel(
-        [hours, minutes, seconds]
-          .map((value) => value.toString().padStart(2, "0"))
-          .join(":"),
-      );
-    };
-    update();
-    const timer = window.setInterval(update, 1000);
-    return () => window.clearInterval(timer);
-  }, [active]);
-
-  return label;
-}
-
 export function RitualRush() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
@@ -198,14 +169,8 @@ export function RitualRush() {
 
   const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT);
   const [bestScore, setBestScore] = useState(0);
-  const [dailyBest, setDailyBest] = useState(0);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [leaderboardState, setLeaderboardState] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
-  const [dailyRank, setDailyRank] = useState<number | null>(null);
   const [achievements, setAchievements] = useState<AchievementStore>(
     emptyAchievementStore,
   );
@@ -220,12 +185,11 @@ export function RitualRush() {
   });
   const [nicknameDraft, setNicknameDraft] = useState("");
   const [nicknameError, setNicknameError] = useState("");
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [, setWalletAddress] = useState<string | null>(null);
   const [settings, setSettings] = useState<Settings>({ music: true });
   const [accelerationLevel, setAccelerationLevel] = useState<number | null>(
     null,
   );
-  const resetLabel = useUtcResetLabel(panel === "leaderboard");
 
   useEffect(() => {
     const storedBest = readJson<number>(BEST_KEY, 0);
@@ -248,9 +212,6 @@ export function RitualRush() {
     setAchievements(readAchievementStore());
     setStats(readLifetimeStats());
     writeJson(PROFILE_KEY, nextProfile);
-    void localLeaderboard
-      .getPlayerDailyBest(nextProfile.identityId)
-      .then(setDailyBest);
   }, []);
 
   useEffect(() => {
@@ -296,24 +257,8 @@ export function RitualRush() {
     };
   }, []);
 
-  const activeIdentityId = walletAddress
-    ? `wallet:${walletAddress.toLowerCase()}`
-    : profile.identityId;
-
-  const refreshLeaderboard = useCallback(async () => {
-    setLeaderboardState("loading");
-    try {
-      const rows =
-        await localLeaderboard.getDailyLeaderboard(activeIdentityId);
-      setLeaderboard(rows);
-      setLeaderboardState("success");
-    } catch {
-      setLeaderboardState("error");
-    }
-  }, [activeIdentityId]);
-
   const handleGameOver = useCallback(
-    async (result: RunResult) => {
+    (result: RunResult) => {
       const completedAt = new Date(result.completedAt);
       lastGameOverAtRef.current = Date.now();
       if (result.isNewBest) {
@@ -323,25 +268,12 @@ export function RitualRush() {
       }
       const nextStats = recordCompletedRun(stats, result, completedAt);
       setStats(nextStats);
-      await localLeaderboard.submitScore({
-        id: activeIdentityId,
-        nickname: profile.nickname,
-        score: result.score,
-        kind: walletAddress ? "wallet" : "guest",
-        isCurrentPlayer: true,
-      });
-      const [rank, nextDailyBest] = await Promise.all([
-        localLeaderboard.getDailyRank(activeIdentityId),
-        localLeaderboard.getPlayerDailyBest(activeIdentityId),
-      ]);
-      setDailyRank(rank);
-      setDailyBest(nextDailyBest);
       const evaluated = evaluateRunAchievements(achievements, {
         score: result.score,
         shieldsCollected: result.shieldsCollected,
         shieldUsed: result.shieldUsed,
         closeCall: result.closeCall,
-        dailyRank: rank,
+        dailyRank: null,
         elapsedSeconds: result.elapsedSeconds,
         speedLevel: result.speedLevel,
         laneMoves: result.laneMoves,
@@ -357,10 +289,7 @@ export function RitualRush() {
     },
     [
       achievements,
-      activeIdentityId,
-      profile.nickname,
       stats,
-      walletAddress,
     ],
   );
 
@@ -445,7 +374,6 @@ export function RitualRush() {
   const openPanel = (next: Exclude<Panel, null>) => {
     if (snapshot.status === "playing") engineRef.current?.pause();
     setPanel(next);
-    if (next === "leaderboard") void refreshLeaderboard();
   };
 
   const saveNickname = () => {
@@ -500,7 +428,6 @@ export function RitualRush() {
       label: "Achievements Completed",
       value: `${completedAchievements} / ${ACHIEVEMENTS.length}`,
     },
-    { label: "Daily Best Score", value: formatScore(dailyBest) },
   ];
 
   return (
@@ -602,9 +529,9 @@ export function RitualRush() {
               <button
                 className="outline-button"
                 type="button"
-                onClick={() => openPanel("leaderboard")}
+                onClick={() => openPanel("onchain")}
               >
-                <span aria-hidden="true">↗</span> Daily Leaderboard
+                <span aria-hidden="true">↗</span> Onchain Leaderboard
               </button>
               <button
                 className="outline-button"
@@ -612,13 +539,6 @@ export function RitualRush() {
                 onClick={() => openPanel("achievements")}
               >
                 <span aria-hidden="true">◇</span> Achievements
-              </button>
-              <button
-                className="outline-button"
-                type="button"
-                onClick={() => openPanel("onchain")}
-              >
-                <span aria-hidden="true">⌁</span> Your Record Score
               </button>
             </div>
 
@@ -640,7 +560,7 @@ export function RitualRush() {
               <div className="best-readout">
                 <p className="data-label">Personal best</p>
                 <strong>{formatScore(bestScore)}</strong>
-                <small>Daily {formatScore(dailyBest)}</small>
+                <small>Local browser record</small>
               </div>
             </div>
             <div className="controls-guide">
@@ -708,10 +628,6 @@ export function RitualRush() {
                 <span>Personal best</span>
                 <strong>{formatScore(runResult.bestScore)}</strong>
               </div>
-              <div>
-                <span>Daily rank</span>
-                <strong>{dailyRank ? `#${dailyRank}` : "—"}</strong>
-              </div>
             </div>
             {unlocked.length > 0 && (
               <div className="unlock-banner" role="status">
@@ -734,15 +650,9 @@ export function RitualRush() {
               </button>
               <button
                 className="outline-button"
-                onClick={() => openPanel("leaderboard")}
-              >
-                View Leaderboard
-              </button>
-              <button
-                className="outline-button"
                 onClick={() => openPanel("onchain")}
               >
-                Your Record Score
+                Onchain Leaderboard
               </button>
               <button className="text-button" onClick={returnToMenu}>
                 Menu
@@ -806,8 +716,11 @@ export function RitualRush() {
               onKeyDown={(event) => {
                 if (event.key === "Enter") saveNickname();
               }}
-              aria-describedby={nicknameError ? "nickname-error" : undefined}
+              aria-describedby="nickname-helper nickname-error"
             />
+            <p className="field-helper" id="nickname-helper">
+              {NICKNAME_HELPER_TEXT}
+            </p>
             <div className="field-meta">
               <span id="nickname-error" role="status">
                 {nicknameError}
@@ -822,72 +735,6 @@ export function RitualRush() {
               HTML is never injected.
             </p>
           </div>
-        </Modal>
-      )}
-
-      {panel === "leaderboard" && (
-        <Modal
-          title="Daily Leaderboard"
-          eyebrow="Demo leaderboard · preview data"
-          onClose={() => setPanel(null)}
-        >
-          <div className="leaderboard-meta">
-            <span>UTC cycle {utcDateKey()}</span>
-            <span>Resets in {resetLabel}</span>
-          </div>
-          {leaderboardState === "loading" && (
-            <div className="panel-state" role="status">
-              Syncing local preview…
-            </div>
-          )}
-          {leaderboardState === "error" && (
-            <div className="panel-state panel-state--error" role="alert">
-              Local standings could not be read.
-              <button type="button" onClick={() => void refreshLeaderboard()}>
-                Retry
-              </button>
-            </div>
-          )}
-          {leaderboardState === "success" && leaderboard.length === 0 && (
-            <div className="panel-state">No scores in this UTC cycle yet.</div>
-          )}
-          {leaderboard.length > 0 && (
-            <div className="leaderboard-table-wrap">
-              <table className="leaderboard-table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Runner</th>
-                    <th>Signal</th>
-                    <th>Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaderboard.map((entry, index) => (
-                    <tr
-                      key={entry.id}
-                      className={entry.isCurrentPlayer ? "is-current" : ""}
-                    >
-                      <td>{String(index + 1).padStart(2, "0")}</td>
-                      <td>{entry.nickname}</td>
-                      <td>
-                        {entry.kind === "demo"
-                          ? "Demo"
-                          : entry.kind === "wallet"
-                            ? "Wallet"
-                            : "Guest"}
-                      </td>
-                      <td>{formatScore(entry.score)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <p className="modal-note">
-            Preview scores are device-local and are not cheat-resistant. Only
-            each identity&apos;s highest score per UTC day is kept.
-          </p>
         </Modal>
       )}
 

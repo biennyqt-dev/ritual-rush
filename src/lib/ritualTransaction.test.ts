@@ -8,7 +8,7 @@ describe("Ritual transaction network states", () => {
 
   it("explains the wrong-network action without Ethereum terminology", () => {
     const message = ritualNetworkMessage(true, 1, true);
-    expect(message).toBe("Switch to Ritual Testnet to record or mint your score.");
+    expect(message).toBe("Switch to Ritual Testnet to record your score.");
     expect(message).not.toMatch(/ethereum|sepolia|eth/i);
   });
 

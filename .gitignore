@@ -8,6 +8,7 @@ coverage/
 .ritual-build/*
 !.ritual-build/progress.json
 contracts/out/
+contracts/out-solc/
 contracts/cache/
 contracts/broadcast/
 .env

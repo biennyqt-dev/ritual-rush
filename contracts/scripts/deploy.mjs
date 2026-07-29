@@ -33,19 +33,26 @@ if (account.address.toLowerCase() !== EXPECTED_DEPLOYER.toLowerCase()) {
   );
 }
 
-const artifact = JSON.parse(
+const abi = JSON.parse(
   await readFile(
-    path.join(CONTRACTS_DIR, "out", "RitualRush.sol", "RitualRush.json"),
+    path.join(CONTRACTS_DIR, "out-solc", "src_RitualRush_sol_RitualRush.abi"),
     "utf8",
   ),
 );
+const bytecode = `0x${(
+  await readFile(
+    path.join(CONTRACTS_DIR, "out-solc", "src_RitualRush_sol_RitualRush.bin"),
+    "utf8",
+  )
+).trim()}`;
+const artifact = { abi, bytecode: { object: bytecode } };
 
-const hasV2Registry = artifact.abi.some(
+const hasScoreRegistry = artifact.abi.some(
   (item) => item.type === "function" && item.name === "recordScore",
 );
-if (!hasV2Registry) {
+if (!hasScoreRegistry) {
   throw new Error(
-    "contracts/out/RitualRush.sol/RitualRush.json is not the v2 registry artifact; compile the current source before deploying.",
+    "Compile the current score-only registry before deploying.",
   );
 }
 
@@ -87,12 +94,17 @@ const balanceBefore = await publicClient.getBalance({
   address: account.address,
 });
 const fees = await publicClient.estimateFeesPerGas({ type: "eip1559" });
+const estimatedDeploymentGas = await publicClient.estimateGas({
+  account: account.address,
+  data: artifact.bytecode.object,
+});
+const deploymentGas = estimatedDeploymentGas + estimatedDeploymentGas / 5n;
 
 const transactionHash = await walletClient.deployContract({
   abi: artifact.abi,
   bytecode: artifact.bytecode.object,
   account,
-  gas: 400_000n,
+  gas: deploymentGas,
   maxFeePerGas: fees.maxFeePerGas,
   maxPriorityFeePerGas: fees.maxPriorityFeePerGas,
 });
@@ -113,11 +125,27 @@ const [code, transaction, balanceAfter] = await Promise.all([
   publicClient.getBalance({ address: account.address }),
 ]);
 
+const version = await publicClient.readContract({
+  address: receipt.contractAddress,
+  abi: artifact.abi,
+  functionName: "VERSION",
+});
+const maxSpeedLevel = await publicClient.readContract({
+  address: receipt.contractAddress,
+  abi: artifact.abi,
+  functionName: "MAX_SPEED_LEVEL",
+});
+
 if (!code || code === "0x") {
   throw new Error(`No runtime bytecode found at ${receipt.contractAddress}.`);
 }
 if (transaction.type !== "eip1559") {
   throw new Error(`Expected EIP-1559 transaction, received ${transaction.type}.`);
+}
+if (version !== "3.0.0" || Number(maxSpeedLevel) !== 100) {
+  throw new Error(
+    `Unexpected registry version or speed ceiling: ${version} / ${maxSpeedLevel}.`,
+  );
 }
 
 process.stdout.write(
@@ -126,7 +154,11 @@ process.stdout.write(
     deployer: account.address,
     contractAddress: receipt.contractAddress,
     transactionHash,
+    version,
+    maxSpeedLevel: maxSpeedLevel.toString(),
     transactionType: transaction.type,
+    estimatedDeploymentGas: estimatedDeploymentGas.toString(),
+    deploymentGas: deploymentGas.toString(),
     blockNumber: receipt.blockNumber.toString(),
     gasUsed: receipt.gasUsed.toString(),
     effectiveGasPrice: receipt.effectiveGasPrice.toString(),

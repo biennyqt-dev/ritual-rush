@@ -20,7 +20,7 @@
     "vercel-production-deploy",
     "social-preview-logo"
   ],
-  "current_phase": 19,
+  "current_phase": 20,
   "phases": [
     {
       "phase": 0,
@@ -232,6 +232,28 @@
         "Local page and /og.png asset both verified HTTP 200",
         "No Ritual contract redeployment required for a social-preview asset change"
       ]
+    },
+    {
+      "phase": 20,
+      "status": "complete",
+      "artifacts": [
+        "Confirmed Ritual RPC chain ID 1979 and live v2 registry VERSION() = 2.0.0",
+        "Simulated recordScore successfully at Level 12 and reproduced reverts at Levels 13 and 100",
+        "Root cause isolated to the deployed contract speed-level ceiling of 12 while the game supports Level 100",
+        "Corrected score-only registry deployed at 0xa4eca5499d798c01dd2f8710d2520220b6177020",
+        "Confirmed Level 100 score transaction 0xc6335905ce667f66955aa611ae4f94255526229e55df070b060e538da8027182"
+      ],
+      "next_file": null
+    },
+    {
+      "phase": 21,
+      "status": "in_progress",
+      "artifacts": [
+        "Frontend ABI and contract address updated for registry version 3.0.0",
+        "Onchain leaderboard now reads confirmed events and keeps each wallet's highest score",
+        "Local/demo leaderboard and score-card paths removed"
+      ],
+      "next_file": "src/components/OnchainScorePanel.tsx"
     }
   ],
   "decisions": [
