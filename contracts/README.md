@@ -9,7 +9,7 @@ Each run is recorded once per wallet by a unique `bytes32 runId`. The
 metadata reference, and block timestamp. The contract accepts Levels 1–100,
 matching the game’s trap-speed progression.
 
-## Ritual skill trace
+## Official Ritual toolchain
 
 The contract and deployment workflow follow the official
 [`ritual-foundation/ritual-dapp-skills`](https://github.com/ritual-foundation/ritual-dapp-skills)
@@ -20,20 +20,60 @@ Applied requirements:
 - Ritual Chain ID `1979`
 - EIP-1559 deployment transaction
 - `https://rpc.ritualfoundation.org`
-- Runtime bytecode and read-call verification
+- Official Foundry compiler and artifacts (`forge build`)
+- ABI generation from Foundry (`forge inspect RitualRush abi --json`)
+- EIP-1559 deployment with the official `forge create` workflow
+- Ritual custom verification workflow and standard-json input
 - Frontend simulation before score transactions
 
-## Local verification
+The repository does not use a generic `solc-js` compilation or deployment path.
+`contracts/scripts/deploy-ritual.ps1` calls the official Foundry commands, and
+`contracts/scripts/export-frontend-abi.ps1` generates the checked-in frontend
+ABI from Foundry's artifact. The generated ABI must be refreshed after every
+Solidity change.
+
+## Official local workflow
 
 ```bash
 cd contracts
 forge build
 forge test -vvv
+forge inspect RitualRush abi --json
 ```
 
-The deployment helper reads the Solidity 0.8.24 compiler output from
-`contracts/out-solc`, verifies the Ritual chain, deploys the current registry,
-and checks `VERSION() == 3.0.0` plus `MAX_SPEED_LEVEL() == 100`.
+Deploy to Ritual Testnet (Chain ID `1979`) using EIP-1559:
 
-Current public deployment: [`0xcafad58ca196d9c33c7018548dc488be41c51a7d`](https://explorer.ritualfoundation.org/address/0xcafad58ca196d9c33c7018548dc488be41c51a7d),
-deployed by [`0x315bb7ea438622aa2cf396ed30b9d2d5e13f907b3dcc4ea4d2aeaada22d20a99`](https://explorer.ritualfoundation.org/tx/0x315bb7ea438622aa2cf396ed30b9d2d5e13f907b3dcc4ea4d2aeaada22d20a99).
+```bash
+source .env
+forge create src/RitualRush.sol:RitualRush \
+  --rpc-url "$RITUAL_RPC_URL" \
+  --private-key "$PRIVATE_KEY" \
+  --broadcast \
+  --json
+```
+
+On Windows, use `scripts/deploy-ritual.ps1` instead of manually passing the
+key. Never commit `contracts/.env`.
+
+Generate the official source-verification input for Ritual Explorer:
+
+```bash
+source .env
+forge verify-contract \
+  --chain 1979 \
+  --verifier custom \
+  --verifier-url "$RITUAL_VERIFIER_URL" \
+  --verifier-api-key unused \
+  <CONTRACT_ADDRESS> \
+  src/RitualRush.sol:RitualRush \
+  --show-standard-json-input > verification/ritual-rush-standard-input.json
+```
+
+Ritual's custom endpoint returned an unavailable-path response in this
+environment, so the generated standard-json input was submitted through the
+official Ritual Explorer **Verify & Publish** page. The contract is now shown
+as verified with `solc v0.8.24+commit.e11b9ed9`; do not switch to Sourcify or
+another chain.
+
+Current public deployment: [`0xeA43d7fcDb8ECCDc0C1F5A763b7F21c2EF4dCaEE`](https://explorer.ritualfoundation.org/address/0xeA43d7fcDb8ECCDc0C1F5A763b7F21c2EF4dCaEE),
+deployed with official Foundry by [`0x777149801c648a68ae656e7f686e1335964d7aa1fdec082aec2d96b2a3f06dee`](https://explorer.ritualfoundation.org/tx/0x777149801c648a68ae656e7f686e1335964d7aa1fdec082aec2d96b2a3f06dee).

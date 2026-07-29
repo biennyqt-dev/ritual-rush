@@ -18,7 +18,7 @@
     "vercel-production-deploy",
     "social-preview-logo"
   ],
-  "current_phase": 23,
+  "current_phase": 24,
   "phases": [
     {
       "phase": 0,
@@ -238,7 +238,7 @@
         "Confirmed Ritual RPC chain ID 1979 and live v2 registry VERSION() = 2.0.0",
         "Simulated recordScore successfully at Level 12 and reproduced reverts at Levels 13 and 100",
         "Root cause isolated to the deployed contract speed-level ceiling of 12 while the game supports Level 100",
-        "Corrected score-only registry deployed at 0xcafad58ca196d9c33c7018548dc488be41c51a7d",
+        "Corrected score-only registry deployed at 0xeA43d7fcDb8ECCDc0C1F5A763b7F21c2EF4dCaEE",
         "Confirmed Level 100 score transaction 0x7b437122c2a769bd22a9faafb9a003c616ee785f896456dd6d04a824984e6b5b"
       ],
       "next_file": null
@@ -279,6 +279,20 @@
         "Final frontend checks, production build, GitHub push, and Vercel deployment completed"
       ],
       "next_file": null
+    },
+    {
+      "phase": 24,
+      "status": "complete",
+      "artifacts": [
+        "Replaced the generic solc-js deployment helper with the official Ritual Foundry workflow",
+        "Foundry forge 1.7.1 compiled Solidity 0.8.24 artifacts and generated the frontend ABI via forge inspect",
+        "Official forge create dry-run and EIP-1559 broadcast completed at 0xeA43d7fcDb8ECCDc0C1F5A763b7F21c2EF4dCaEE",
+        "Official cast code and read-call checks passed for VERSION 3.0.0 and MAX_SPEED_LEVEL 100",
+        "Official standard-json verification input generated and submitted through Ritual Explorer Verify & Publish",
+        "Explorer reports Verified Contract with solc v0.8.24+commit.e11b9ed9",
+        "Frontend and Foundry tests passed after the generated ABI migration"
+      ],
+      "next_file": null
     }
   ],
   "decisions": [
@@ -292,7 +306,8 @@
     "The Vercel deployment publishes the browser application.",
     "The user requested an on-chain Ritual public testnet phase after the initial offchain release.",
     "The RitualRush contract is ownerless and records explicitly unverified public score claims without custody, tokens, or privileged administration.",
-    "The final score registry is deployed to Ritual Testnet so connected users can simulate and submit real wallet transactions; only confirmed ScoreRecorded events appear in the leaderboard."
+    "The final score registry is deployed to Ritual Testnet so connected users can simulate and submit real wallet transactions; only confirmed ScoreRecorded events appear in the leaderboard.",
+    "Contract compilation, ABI generation, deployment, and verification artifacts use the official Ritual Foundry workflow documented by the installed Ritual skills."
   ],
   "files_read": [
     "skills/ritual/SKILL.md",

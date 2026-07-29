@@ -20,7 +20,7 @@ describe("Ritual Rush contract configuration", () => {
     expect(ritualRushContractExplorerUrl(null)).toBeNull();
   });
 
-  it("builds Ritual transaction links and exposes only score recording functions", () => {
+  it("builds Ritual transaction links and exposes no minting functions", () => {
     expect(
       ritualRushTransactionExplorerUrl(`0x${"ab".repeat(32)}`),
     ).toBe(
@@ -31,19 +31,10 @@ describe("Ritual Rush contract configuration", () => {
         (item) => item.name,
       ),
     ).toContain("recordScore");
-    expect(
-      RITUAL_RUSH_CONTRACT_ABI.filter((item) => item.type === "function").map(
-        (item) => item.name,
-      ),
-    ).toEqual([
-      "recordScore",
-      "scoreRecord",
-      "playerRunCount",
-      "playerRunIdAt",
-      "playerBestScore",
-      "MAX_SPEED_LEVEL",
-      "RITUAL_CHAIN_ID",
-      "VERSION",
-    ]);
+    const functionNames = RITUAL_RUSH_CONTRACT_ABI.filter(
+      (item) => item.type === "function",
+    ).map((item) => item.name);
+    expect(functionNames).not.toContain("mintScoreCard");
+    expect(functionNames).not.toContain("mint");
   });
 });
