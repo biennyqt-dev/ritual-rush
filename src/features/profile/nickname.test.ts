@@ -13,9 +13,12 @@ describe("nickname validation", () => {
     });
   });
 
-  it("rejects empty, overly long, and invisible control characters", () => {
+  it("rejects empty and invisible control characters", () => {
     expect(validateNickname("   ").ok).toBe(false);
-    expect(validateNickname("x".repeat(30)).ok).toBe(false);
+    expect(validateNickname("x".repeat(30))).toEqual({
+      ok: true,
+      value: "x".repeat(30),
+    });
     expect(validateNickname("Runner\u0000").ok).toBe(false);
   });
 

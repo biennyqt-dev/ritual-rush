@@ -8,7 +8,7 @@ contract RitualRush {
     uint256 public constant RITUAL_CHAIN_ID = 1979;
     uint32 public constant MAX_SPEED_LEVEL = 100;
     uint256 public constant MAX_METADATA_LENGTH = 256;
-    uint256 public constant MAX_NICKNAME_LENGTH = 72;
+    uint256 public constant MAX_NICKNAME_LENGTH = 256;
     string public constant GAME_NAME = "Ritual Rush";
     string public constant VERSION = "3.0.0";
     string public constant GAME_URL = "https://ritual-rush-eight.vercel.app";

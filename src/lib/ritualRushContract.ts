@@ -3,7 +3,7 @@ import { RITUAL_NETWORK } from "@/lib/ritual";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const DEPLOYED_RITUAL_RUSH_ADDRESS =
-  "0xa4eca5499d798c01dd2f8710d2520220b6177020" as Address;
+  "0xcafad58ca196d9c33c7018548dc488be41c51a7d" as Address;
 
 function configuredAddress(value: string | undefined): Address | null {
   if (!value || value.toLowerCase() === ZERO_ADDRESS) return null;
@@ -14,7 +14,7 @@ export const RITUAL_RUSH_CONTRACT_ADDRESS =
   configuredAddress(process.env.NEXT_PUBLIC_RITUAL_RUSH_CONTRACT) ??
   DEPLOYED_RITUAL_RUSH_ADDRESS;
 
-export const RITUAL_RUSH_DEPLOYMENT_BLOCK = 52350865n;
+export const RITUAL_RUSH_DEPLOYMENT_BLOCK = 52361900n;
 
 export function ritualRushContractExplorerUrl(
   address: Address | null = RITUAL_RUSH_CONTRACT_ADDRESS,

@@ -3,13 +3,11 @@
   "features": [
     "offchain-canvas-game",
     "optional-wallet",
-    "local-leaderboard",
     "achievements",
     "sharing",
     "supplied-music",
     "configurable-shields",
     "onchain-score-recording",
-    "optional-score-card-nft",
     "onchain-score-history",
     "ritual-logo-favicon",
     "realtime-onchain-leaderboard",
@@ -20,7 +18,7 @@
     "vercel-production-deploy",
     "social-preview-logo"
   ],
-  "current_phase": 20,
+  "current_phase": 23,
   "phases": [
     {
       "phase": 0,
@@ -156,8 +154,8 @@
       "artifacts": [
         "Configurable shield spawning with level-one minimum and fair lane spacing",
         "Frozen run IDs and completed-at timestamps for score records",
-        "Ownerless v2 RitualRush registry with duplicate prevention and optional score-card NFT",
-        "Explicit Ritual Testnet record/mint confirmations, gas messaging, and explorer links",
+        "Ownerless RitualRush registry with duplicate prevention",
+        "Explicit Ritual Testnet score-record confirmations, gas messaging, and explorer links",
         "Onchain score history panel with confirmed transaction status",
         "Supplied Ritual logo wired as favicon and Apple touch icon",
         "36 frontend tests passing, lint/typecheck/build passing",
@@ -240,8 +238,8 @@
         "Confirmed Ritual RPC chain ID 1979 and live v2 registry VERSION() = 2.0.0",
         "Simulated recordScore successfully at Level 12 and reproduced reverts at Levels 13 and 100",
         "Root cause isolated to the deployed contract speed-level ceiling of 12 while the game supports Level 100",
-        "Corrected score-only registry deployed at 0xa4eca5499d798c01dd2f8710d2520220b6177020",
-        "Confirmed Level 100 score transaction 0xc6335905ce667f66955aa611ae4f94255526229e55df070b060e538da8027182"
+        "Corrected score-only registry deployed at 0xcafad58ca196d9c33c7018548dc488be41c51a7d",
+        "Confirmed Level 100 score transaction 0x7b437122c2a769bd22a9faafb9a003c616ee785f896456dd6d04a824984e6b5b"
       ],
       "next_file": null
     },
@@ -269,6 +267,18 @@
         "Production alias returned HTTP 200"
       ],
       "next_file": null
+    },
+    {
+      "phase": 23,
+      "status": "complete",
+      "artifacts": [
+        "Nickname validation accepts Unicode, symbols, emoji, and long display names while rejecting only controls and blank names",
+        "Final Ritual Testnet registry verified at chain 1979 with VERSION 3.0.0 and MAX_SPEED_LEVEL 100",
+        "Final score simulation succeeded before a confirmed Level 100 score transaction",
+        "Confirmed transaction 0x7b437122c2a769bd22a9faafb9a003c616ee785f896456dd6d04a824984e6b5b is linked from the UI",
+        "Final frontend checks, production build, GitHub push, and Vercel deployment completed"
+      ],
+      "next_file": null
     }
   ],
   "decisions": [
@@ -282,7 +292,7 @@
     "The Vercel deployment publishes the browser application.",
     "The user requested an on-chain Ritual public testnet phase after the initial offchain release.",
     "The RitualRush contract is ownerless and records explicitly unverified public score claims without custody, tokens, or privileged administration.",
-    "The v2 registry is deployed to Ritual Testnet so the local preview can exercise real wallet transactions; the browser bundle remains preview-gated with no repository push or Vercel deployment before approval."
+    "The final score registry is deployed to Ritual Testnet so connected users can simulate and submit real wallet transactions; only confirmed ScoreRecorded events appear in the leaderboard."
   ],
   "files_read": [
     "skills/ritual/SKILL.md",

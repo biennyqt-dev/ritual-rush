@@ -708,7 +708,6 @@ export function RitualRush() {
             <input
               id="nickname"
               value={nicknameDraft}
-              maxLength={18}
               onChange={(event) => {
                 setNicknameDraft(event.target.value);
                 setNicknameError("");
@@ -725,7 +724,7 @@ export function RitualRush() {
               <span id="nickname-error" role="status">
                 {nicknameError}
               </span>
-              <span>{nicknameDraft.length}/18</span>
+              <span>{nicknameDraft.length} characters</span>
             </div>
             <button className="primary-cta primary-cta--compact" onClick={saveNickname}>
               Save identity

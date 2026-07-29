@@ -98,5 +98,5 @@ bytecode, and reads the deployed version and Level-100 speed ceiling.
 - Live game: [ritual-rush-eight.vercel.app](https://ritual-rush-eight.vercel.app)
 - Source: [github.com/biennyqt-dev/ritual-rush](https://github.com/biennyqt-dev/ritual-rush)
 - Network: Ritual Testnet, Chain ID `1979`
-- Score registry: [`0xa4eca5499d798c01dd2f8710d2520220b6177020`](https://explorer.ritualfoundation.org/address/0xa4eca5499d798c01dd2f8710d2520220b6177020)
-- Registry deployment: [`0xa8260b3c559c1f2dc401975846d59a2bc900887af878842e2d30c5e8917fd7c4`](https://explorer.ritualfoundation.org/tx/0xa8260b3c559c1f2dc401975846d59a2bc900887af878842e2d30c5e8917fd7c4)
+- Score registry: [`0xcafad58ca196d9c33c7018548dc488be41c51a7d`](https://explorer.ritualfoundation.org/address/0xcafad58ca196d9c33c7018548dc488be41c51a7d)
+- Registry deployment: [`0x315bb7ea438622aa2cf396ed30b9d2d5e13f907b3dcc4ea4d2aeaada22d20a99`](https://explorer.ritualfoundation.org/tx/0x315bb7ea438622aa2cf396ed30b9d2d5e13f907b3dcc4ea4d2aeaada22d20a99)
