@@ -25,7 +25,6 @@ import {
 } from "@/features/achievements/achievements";
 import {
   generateGuestNickname,
-  NICKNAME_HELPER_TEXT,
   validateNickname,
 } from "@/features/profile/nickname";
 import { shareOnX } from "@/features/sharing/sharing";
@@ -322,6 +321,14 @@ export function RitualRush() {
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.matches("input, textarea, select, [contenteditable='true']"))
+      ) {
+        return;
+      }
       if (
         ["ArrowLeft", "ArrowRight", " ", "Escape"].includes(event.key) ||
         ["a", "d", "p"].includes(event.key.toLowerCase())
@@ -715,11 +722,8 @@ export function RitualRush() {
               onKeyDown={(event) => {
                 if (event.key === "Enter") saveNickname();
               }}
-              aria-describedby="nickname-helper nickname-error"
+              aria-describedby="nickname-error"
             />
-            <p className="field-helper" id="nickname-helper">
-              {NICKNAME_HELPER_TEXT}
-            </p>
             <div className="field-meta">
               <span id="nickname-error" role="status">
                 {nicknameError}
@@ -729,10 +733,6 @@ export function RitualRush() {
             <button className="primary-cta primary-cta--compact" onClick={saveNickname}>
               Save identity
             </button>
-            <p className="modal-note">
-              Stored only on this device. React safely renders the display name;
-              HTML is never injected.
-            </p>
           </div>
         </Modal>
       )}

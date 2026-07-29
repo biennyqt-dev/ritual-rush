@@ -1,6 +1,3 @@
-export const NICKNAME_HELPER_TEXT =
-  "Letters, numbers, spaces, emojis, and symbols are allowed.";
-
 export interface NicknameResult {
   ok: boolean;
   value: string;

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   generateGuestNickname,
-  NICKNAME_HELPER_TEXT,
   validateNickname,
 } from "@/features/profile/nickname";
 
@@ -27,12 +26,6 @@ describe("nickname validation", () => {
       ok: true,
       value: "<Rush> #1 🚀",
     });
-  });
-
-  it("publishes the display-name helper text", () => {
-    expect(NICKNAME_HELPER_TEXT).toBe(
-      "Letters, numbers, spaces, emojis, and symbols are allowed.",
-    );
   });
 
   it("generates a stable guest-shaped default", () => {
