@@ -9,6 +9,30 @@ export interface OnchainScoreRecord {
   txHash?: string;
 }
 
+export const ONCHAIN_LOG_BLOCK_RANGE = 90_000n;
+
+export function chunkBlockRange(
+  fromBlock: bigint,
+  toBlock: bigint,
+  maxBlockRange = ONCHAIN_LOG_BLOCK_RANGE,
+) {
+  if (maxBlockRange <= 0n) {
+    throw new RangeError("maxBlockRange must be greater than zero");
+  }
+  if (toBlock < fromBlock) return [];
+
+  const ranges: Array<{ fromBlock: bigint; toBlock: bigint }> = [];
+  for (let start = fromBlock; start <= toBlock; start += maxBlockRange) {
+    ranges.push({
+      fromBlock: start,
+      toBlock: start + maxBlockRange - 1n > toBlock
+        ? toBlock
+        : start + maxBlockRange - 1n,
+    });
+  }
+  return ranges;
+}
+
 export function rankOnchainScores(
   records: OnchainScoreRecord[],
   limit = 25,

@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { rankOnchainScores } from "@/lib/onchainLeaderboard";
+import {
+  chunkBlockRange,
+  rankOnchainScores,
+} from "@/lib/onchainLeaderboard";
 
 describe("onchain leaderboard", () => {
+  it("chunks Ritual log reads below the RPC block-range limit", () => {
+    expect(chunkBlockRange(100n, 100n + 180_000n)).toEqual([
+      { fromBlock: 100n, toBlock: 90_099n },
+      { fromBlock: 90_100n, toBlock: 180_099n },
+      { fromBlock: 180_100n, toBlock: 180_100n },
+    ]);
+    expect(chunkBlockRange(10n, 9n)).toEqual([]);
+  });
+
   it("ranks live records by score, then newest timestamp", () => {
     const ranked = rankOnchainScores([
       { player: "0xbbb", nickname: "B", runId: "0x02", score: 500n, speedLevel: 2, runDuration: 8, timestamp: 20n },

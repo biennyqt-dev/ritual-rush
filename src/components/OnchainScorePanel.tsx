@@ -28,7 +28,11 @@ import {
   formatRunDuration,
   scoreMetadataReference,
 } from "@/lib/scoreRecord";
-import { rankOnchainScores, type OnchainScoreRecord } from "@/lib/onchainLeaderboard";
+import {
+  chunkBlockRange,
+  rankOnchainScores,
+  type OnchainScoreRecord,
+} from "@/lib/onchainLeaderboard";
 
 const SUBMISSION_KEY = "ritual-rush:onchain-runs:v1";
 const scoreRecordedEvent = parseAbiItem(
@@ -93,7 +97,7 @@ function saveLocalRunState(runId: string, value: LocalRunState) {
   }
 }
 
-function errorLabel(error: unknown): string {
+function errorLabel(error: unknown, context: "record" | "leaderboard" = "record"): string {
   const candidate = error as { shortMessage?: string; message?: string } | null;
   const message = candidate?.shortMessage ?? candidate?.message ?? String(error ?? "");
   if (/reject|denied|user canceled|user denied/i.test(message)) {
@@ -125,7 +129,10 @@ function errorLabel(error: unknown): string {
   }
   const compact = message.replace(/\s+/g, " ").trim();
   if (compact) {
-    return `Ritual Testnet simulation failed: ${compact.slice(0, 180)}`;
+    const prefix = context === "leaderboard"
+      ? "Ritual Testnet leaderboard read failed"
+      : "Ritual Testnet simulation failed";
+    return `${prefix}: ${compact.slice(0, 180)}`;
   }
   return "Ritual Testnet transaction failed. Check the wallet network and testnet RITUAL balance.";
 }
@@ -340,6 +347,19 @@ export function OnchainScorePanel({
 
 type HistoryRow = OnchainScoreRecord;
 
+type ScoreRecordedLog = {
+  args?: {
+    player?: string;
+    score?: bigint;
+    speedLevel?: number;
+    runDuration?: number;
+    runId?: string;
+    nickname?: string;
+    timestamp?: bigint;
+  };
+  transactionHash?: string | null;
+};
+
 export function OnchainHistoryPanel() {
   const { address } = useAccount();
   const publicClient = usePublicClient({ chainId: RITUAL_CHAIN_ID });
@@ -357,22 +377,24 @@ export function OnchainHistoryPanel() {
     setState("loading");
     setMessage("");
     try {
-      const logs = await publicClient.getLogs({
-        address: RITUAL_RUSH_CONTRACT_ADDRESS,
-        event: scoreRecordedEvent,
-        fromBlock: RITUAL_RUSH_DEPLOYMENT_BLOCK,
-      });
+      const latestBlock = await publicClient.getBlockNumber();
+      const ranges = chunkBlockRange(
+        RITUAL_RUSH_DEPLOYMENT_BLOCK,
+        latestBlock,
+      );
+      const logs: ScoreRecordedLog[] = [];
+      for (const range of ranges) {
+        logs.push(
+          ...(await publicClient.getLogs({
+            address: RITUAL_RUSH_CONTRACT_ADDRESS,
+            event: scoreRecordedEvent,
+            ...range,
+          }) as unknown as ScoreRecordedLog[]),
+        );
+      }
       const parsedRows = logs
         .map<HistoryRow | null>((log) => {
-          const args = log.args as {
-            player?: string;
-            score?: bigint;
-            speedLevel?: number;
-            runDuration?: number;
-            runId?: string;
-            nickname?: string;
-            timestamp?: bigint;
-          };
+          const args = log.args ?? {};
           if (
             !args.player ||
             args.score === undefined ||
@@ -400,7 +422,7 @@ export function OnchainHistoryPanel() {
       setState("success");
     } catch (readError) {
       setState("error");
-      setMessage(errorLabel(readError));
+      setMessage(errorLabel(readError, "leaderboard"));
     }
   }, [publicClient]);
 
