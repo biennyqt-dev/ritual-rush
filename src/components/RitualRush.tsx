@@ -260,6 +260,11 @@ export function RitualRush() {
     (result: RunResult) => {
       const completedAt = new Date(result.completedAt);
       lastGameOverAtRef.current = Date.now();
+      if (accelerationTimerRef.current !== null) {
+        window.clearTimeout(accelerationTimerRef.current);
+        accelerationTimerRef.current = null;
+      }
+      setAccelerationLevel(null);
       if (result.isNewBest) {
         bestRef.current = result.score;
         setBestScore(result.score);

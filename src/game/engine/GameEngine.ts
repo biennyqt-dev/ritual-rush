@@ -109,15 +109,11 @@ export class GameEngine {
     this.canvas = canvas;
     this.context = canvas.getContext("2d", { alpha: false });
     this.resize();
-    if (!this.animationFrame) {
-      this.previousTime = performance.now();
-      this.animationFrame = requestAnimationFrame(this.loop);
-    }
+    this.ensureAnimationLoop();
   }
 
   destroy() {
-    cancelAnimationFrame(this.animationFrame);
-    this.animationFrame = 0;
+    this.stopAnimationLoop();
     this.canvas = null;
     this.context = null;
   }
@@ -163,14 +159,18 @@ export class GameEngine {
     this.flash = 0;
     this.shake = 0;
     this.emitSnapshot();
+    this.ensureAnimationLoop();
   }
 
   resetToIdle() {
     this.status = "idle";
+    this.stopAnimationLoop();
     this.objects = [];
     this.pending = [];
     this.particles = [];
     this.flash = 0;
+    this.shake = 0;
+    this.brokenTimer = 0;
     this.emitSnapshot();
   }
 
@@ -331,8 +331,25 @@ export class GameEngine {
     this.previousTime = time;
     this.update(delta);
     this.render(time / 1000);
+    if (!this.canvas || this.status === "gameover" || this.status === "idle") {
+      this.animationFrame = 0;
+      return;
+    }
     this.animationFrame = requestAnimationFrame(this.loop);
   };
+
+  private ensureAnimationLoop() {
+    if (!this.canvas || this.animationFrame) return;
+    this.previousTime = performance.now();
+    this.animationFrame = requestAnimationFrame(this.loop);
+  }
+
+  private stopAnimationLoop() {
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = 0;
+    }
+  }
 
   private queuePattern(level: number) {
     const difficulty = difficultyAt(this.elapsed);
@@ -435,9 +452,13 @@ export class GameEngine {
 
   private finishRun() {
     this.status = "gameover";
-    this.flash = 1;
-    this.shake = 1;
-    this.burst(this.lane, PLAYER_Y, "#EF4444", 44);
+    this.displayLane = this.lane;
+    this.flash = 0;
+    this.shake = 0;
+    this.brokenTimer = 0;
+    this.particles = [];
+    this.stopAnimationLoop();
+    this.render(this.previousTime / 1000);
     const score = Math.floor(this.score);
     const previousBest = this.getBestScore();
     const result = freezeRunResult({
@@ -490,14 +511,16 @@ export class GameEngine {
     if (!canvas || !context) return;
     const width = canvas.width;
     const height = canvas.height;
-    const jitterX = this.shake > 0 ? Math.sin(time * 91) * 7 * this.shake : 0;
-    const jitterY = this.shake > 0 ? Math.cos(time * 73) * 4 * this.shake : 0;
+    const resting = this.status === "gameover" || this.status === "idle";
+    const frameTime = resting ? 0 : time;
+    const jitterX = this.shake > 0 ? Math.sin(frameTime * 91) * 7 * this.shake : 0;
+    const jitterY = this.shake > 0 ? Math.cos(frameTime * 73) * 4 * this.shake : 0;
 
     context.save();
     context.translate(jitterX, jitterY);
-    this.drawBackground(context, width, height, time);
-    this.drawObjects(context, width, height, time);
-    this.drawPlayer(context, width, height, time);
+    this.drawBackground(context, width, height, frameTime);
+    this.drawObjects(context, width, height, frameTime);
+    this.drawPlayer(context, width, height, frameTime);
     this.drawParticles(context, width, height);
 
     if (this.flash > 0) {
