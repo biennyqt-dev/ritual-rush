@@ -110,10 +110,10 @@ function errorLabel(error: unknown, context: "record" | "leaderboard" = "record"
     return "This run ID was already recorded. Start a new run before recording again.";
   }
   if (/InvalidSpeedLevel/i.test(message)) {
-    return "The run level is outside the supported Ritual Rush range (1–100).";
+    return "The run level is outside the supported Ritual Dash range (1–100).";
   }
   if (/InvalidScore/i.test(message)) {
-    return "The score is outside the valid Ritual Rush range.";
+    return "The score is outside the valid Ritual Dash range.";
   }
   if (/InvalidRunDuration/i.test(message)) {
     return "The run duration is outside the valid range.";
@@ -275,7 +275,7 @@ export function OnchainScorePanel({
       <div className="score-record-scanline" aria-hidden="true" />
       <div className="score-record-header">
         <div>
-          <span className="data-label">Ritual Rush</span>
+          <span className="data-label">Ritual Dash</span>
           <h3>Score Record</h3>
         </div>
         <span className={`record-status record-status--${recordConfirmed ? "confirmed" : "ready"}`}>
@@ -437,7 +437,7 @@ export function OnchainHistoryPanel() {
       <div className="onchain-history-toolbar">
         <div>
           <span className="data-label">Confirmed Ritual Testnet events</span>
-          <h3>YOUR RECORD SCORE IN RITUAL RUSH</h3>
+      <h3>YOUR RECORD SCORE IN RITUAL DASH</h3>
         </div>
         <div className="onchain-history-actions">
           {lastUpdated && <span className="onchain-history-updated">Live · {lastUpdated.slice(11, 16)} UTC</span>}

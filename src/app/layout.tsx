@@ -9,9 +9,9 @@ const siteUrl =
     : "http://localhost:3000");
 
 export const metadata: Metadata = {
-  title: "Ritual Rush",
+  title: "Ritual Dash",
   description: "Rush through the network. Survive the chaos.",
-  applicationName: "Ritual Rush",
+  applicationName: "Ritual Dash",
   metadataBase: new URL(siteUrl),
   icons: {
     icon: [
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     apple: "/ritual-logo.jpg",
   },
   openGraph: {
-    title: "Ritual Rush",
+    title: "Ritual Dash",
     description: "Rush through the network. Survive the chaos.",
     type: "website",
     images: [
@@ -32,13 +32,13 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 292,
         height: 123,
-        alt: "RITUAL RUSH logo",
+        alt: "RITUAL DASH logo",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ritual Rush",
+    title: "Ritual Dash",
     description: "Rush through the network. Survive the chaos.",
     images: ["/og.png"],
   },

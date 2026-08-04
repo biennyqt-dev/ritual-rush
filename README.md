@@ -1,8 +1,8 @@
-# Ritual Rush
+# Ritual Dash
 
 **Rush through the network. Survive the chaos.**
 
-Ritual Rush is a three-lane endless runner for the browser. Guide the supplied
+Ritual Dash is a three-lane endless runner for the browser. Guide the supplied
 Ritual logo through deep space, dodge incoming copies, collect temporary energy
 shields, and optionally publish a completed run to Ritual Testnet.
 
@@ -10,7 +10,7 @@ Gameplay is wallet-optional. A wallet is required only when a player chooses
 **Record your score** after Game Over. The dApp never requests a signature or
 transaction automatically.
 
-> Ritual Rush is an independent community project and is not an official Ritual Foundation product.
+> Ritual Dash is an independent community project and is not an official Ritual Foundation product.
 
 ## Gameplay
 
@@ -29,7 +29,7 @@ The frontend checks the chain, contract version, arguments, and revert reason
 before asking the wallet to send the transaction.
 
 Only confirmed `ScoreRecorded` events from the configured Ritual contract are
-shown in **YOUR RECORD SCORE IN RITUAL RUSH**. The board keeps the highest
+shown in **YOUR RECORD SCORE IN RITUAL DASH**. The board keeps the highest
 confirmed score for each wallet, displays the recorded nickname with the
 shortened wallet as its secondary identity, and links every row to the Ritual
 Explorer transaction.

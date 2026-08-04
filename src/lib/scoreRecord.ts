@@ -1,7 +1,7 @@
 import type { RunResult } from "@/game/engine/types";
 
 export interface ScoreRecordMetadata {
-  game: "Ritual Rush";
+  game: "Ritual Dash";
   player: string;
   wallet: string;
   score: number;
@@ -48,7 +48,7 @@ export function buildScoreMetadata(
   recordedAt = new Date(result.completedAt),
 ): ScoreRecordMetadata {
   return {
-    game: "Ritual Rush",
+    game: "Ritual Dash",
     player: nickname,
     wallet,
     score: result.score,

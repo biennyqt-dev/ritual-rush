@@ -5,7 +5,7 @@ export interface ShareScoreInput {
 
 export function makeShareText({ score, origin }: ShareScoreInput): string {
   return [
-    `I survived the Ritual network and scored ${Math.floor(score).toLocaleString("en-US")} in Ritual Rush.`,
+    `I survived the Ritual network and scored ${Math.floor(score).toLocaleString("en-US")} in Ritual Dash.`,
     "",
     "Can you beat my score?",
     "",

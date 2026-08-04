@@ -461,7 +461,7 @@ export function RitualRush() {
         className="game-canvas"
         aria-label="Three-lane endless runner. Move the Ritual logo left and right to avoid falling Ritual logos and collect energy shields."
       >
-        Ritual Rush is a three-lane arcade game. Move the Ritual logo left and
+        Ritual Dash is a three-lane arcade game. Move the Ritual logo left and
         right to avoid obstacles.
       </canvas>
 
@@ -529,11 +529,11 @@ export function RitualRush() {
           <div className="menu-content">
             <h1 id="game-title">
               RITUAL
-              <span>RUSH</span>
+              <span>DASH</span>
             </h1>
 
             <button className="primary-cta" type="button" onClick={startRun}>
-              <span>Start Rush</span>
+              <span>Start Dash</span>
               <kbd>Enter</kbd>
             </button>
 
@@ -613,7 +613,7 @@ export function RitualRush() {
           <h2>Paused</h2>
           <p>Resume when ready.</p>
           <button className="primary-cta primary-cta--compact" onClick={togglePause}>
-            Resume Rush
+            Resume Dash
           </button>
           <button className="text-button" type="button" onClick={returnToMenu}>
             Return to menu
@@ -828,7 +828,7 @@ export function RitualRush() {
 
       {panel === "onchain" && (
         <Modal
-          title="YOUR RECORD SCORE IN RITUAL RUSH"
+          title="YOUR RECORD SCORE IN RITUAL DASH"
           eyebrow="Live onchain leaderboard"
           onClose={() => setPanel(null)}
         >

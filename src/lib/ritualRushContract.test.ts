@@ -5,7 +5,7 @@ import {
   ritualRushTransactionExplorerUrl,
 } from "@/lib/ritualRushContract";
 
-describe("Ritual Rush contract configuration", () => {
+describe("Ritual Dash contract configuration", () => {
   it("builds the Ritual explorer URL for a deployment address", () => {
     expect(
       ritualRushContractExplorerUrl(

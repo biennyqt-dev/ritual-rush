@@ -1,6 +1,6 @@
 # Ritual Skills Usage
 
-Ritual Rush follows the vendored official Ritual dApp skills repository:
+Ritual Dash follows the vendored official Ritual dApp skills repository:
 
 `.codex/skills/ritual-dapp-skills`
 
